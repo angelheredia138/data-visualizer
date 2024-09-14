@@ -1,5 +1,10 @@
-// https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  compatibilityDate: '2024-04-03',
-  devtools: { enabled: true }
+  css: ['~/assets/css/global.css'],  // Include your global CSS file here
+
+  build: {
+    transpile: ['vuetify'],
+  },
+
+  plugins: ['~/plugins/vuetify.ts'],
+  compatibilityDate: '2024-09-14',
 })
