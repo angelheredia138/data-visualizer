@@ -1,6 +1,14 @@
 <template>
   <div class="chart-container-transparent" style="flex: 1; padding: 10px">
+    <!-- Button to trigger data fetching -->
+    <v-btn color="blue" @click="fetchTopGenres" :disabled="loading">
+      {{ loading ? "Fetching..." : "Fetch Data" }}
+    </v-btn>
+
+    <!-- Chart container -->
     <svg id="d3-genres-chart" style="width: 100%; height: 100%"></svg>
+
+    <!-- Time range selection dropdown -->
     <div class="time-range-controls">
       <v-select
         v-model="localTimeRange"
@@ -11,42 +19,71 @@
         class="dropdown"
       ></v-select>
     </div>
+
+    <!-- Error message -->
+    <v-alert v-if="error" type="error">{{ error }}</v-alert>
+
+    <!-- Loading spinner -->
+    <v-progress-circular
+      v-if="loading"
+      indeterminate
+      color="green"
+    ></v-progress-circular>
   </div>
 </template>
 
 <script setup>
 import * as d3 from "d3";
 import { ref, onMounted, watch } from "vue";
+import { useNuxtApp } from "#app";
 
-// Props
-const props = defineProps({
-  topGenres: {
-    type: Array,
-    required: true,
-  },
-  timeRange: {
-    type: String,
-    required: true,
-  },
-  setTimeRange: {
-    type: Function,
-    required: true,
-  },
-});
+// Local state for genres data, loading and error state
+const topGenres = ref([]); // Local state instead of prop
+const loading = ref(false);
+const error = ref(null);
 
-// Local state
-const localTimeRange = ref(props.timeRange);
+// Local state for time range selection
+const localTimeRange = ref("medium_term");
 
+// Time range options
 const timeRangeOptions = ref([
   { value: "short_term", text: "Last 4 weeks" },
   { value: "medium_term", text: "Last 6 months" },
   { value: "long_term", text: "All time" },
 ]);
 
-// Watch for time range changes
-watch(localTimeRange, (newValue) => {
-  props.setTimeRange(newValue);
-});
+// Get the axios instance from the Nuxt app
+const { $axios } = useNuxtApp();
+
+// Function to fetch top genres data from the API
+const fetchTopGenres = async () => {
+  try {
+    loading.value = true;
+    error.value = null; // Reset error
+
+    const token = localStorage.getItem("spotify_access_token");
+    if (!token) {
+      error.value = "No Spotify access token found in localStorage.";
+      loading.value = false;
+      return;
+    }
+
+    const headers = { Authorization: `Bearer ${token}` };
+    const response = await $axios.get(
+      `/top-genres?time_range=${localTimeRange.value}`,
+      { headers }
+    );
+
+    // Update the local state with fetched data
+    topGenres.value = response.data.top_genres;
+    console.log("Fetched Top Genres:", response.data.top_genres);
+  } catch (err) {
+    error.value = "Error fetching top genres data.";
+    console.error(error.value, err);
+  } finally {
+    loading.value = false;
+  }
+};
 
 // Function to draw the genres chart
 const drawGenresChart = (genres) => {
@@ -96,14 +133,14 @@ const drawGenresChart = (genres) => {
     .append("feGaussianBlur")
     .attr("in", "SourceAlpha")
     .attr("stdDeviation", 3)
-    .attr("result", "blur");
+    .attr("result", "blur"); // Ensure correct chaining
 
   filter
     .append("feOffset")
     .attr("in", "blur")
     .attr("dx", 2)
     .attr("dy", 2)
-    .attr("result", "offsetBlur");
+    .attr("result", "offsetBlur"); // Ensure correct chaining
 
   const feMerge = filter.append("feMerge");
 
@@ -288,18 +325,20 @@ const drawGenresChart = (genres) => {
 
 // Watch for changes in topGenres and draw chart
 watch(
-  () => props.topGenres,
+  topGenres,
   (newGenres) => {
-    if (newGenres.length > 0) {
+    if (newGenres && newGenres.length > 0) {
       drawGenresChart(newGenres);
     }
   },
   { immediate: true }
 );
 
-// Draw genres chart on mount and when topGenres change
+// Draw genres chart on mount if data exists
 onMounted(() => {
-  drawGenresChart(props.topGenres);
+  if (topGenres.value && topGenres.value.length > 0) {
+    drawGenresChart(topGenres.value);
+  }
 });
 </script>
 

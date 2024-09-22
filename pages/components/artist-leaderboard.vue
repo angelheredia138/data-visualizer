@@ -1,29 +1,76 @@
 <template>
   <div class="chart-container-transparent" style="flex: 1; padding: 10px">
+    <!-- Button to trigger data fetching -->
+    <v-btn color="blue" @click="fetchTopArtists" :disabled="loading">
+      {{ loading ? "Fetching..." : "Fetch Data" }}
+    </v-btn>
+
+    <!-- Chart container -->
     <svg id="d3-leaderboard" style="width: 100%; height: 100%"></svg>
+
+    <!-- Message for full artist names -->
     <p
       v-if="processedArtists.some((artist) => artist.displayName.includes('*'))"
       style="margin-top: 16px; font-size: 12px; color: gray"
     >
       * Full artist names: {{ fullArtistNames }}
     </p>
+
+    <!-- Error message -->
+    <v-alert v-if="error" type="error">{{ error }}</v-alert>
+
+    <!-- Loading spinner -->
+    <v-progress-circular
+      v-if="loading"
+      indeterminate
+      color="green"
+    ></v-progress-circular>
   </div>
 </template>
 
 <script setup>
 import * as d3 from "d3";
-import { ref, onMounted, watch } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
+import { useNuxtApp } from "#app";
 
-// Props
-const props = defineProps({
-  artists: {
-    type: Array,
-    required: true,
-  },
-});
-
-// Local state
+// Local state for artists data, loading and error state
+const artists = ref([]);
 const processedArtists = ref([]);
+const loading = ref(false);
+const error = ref(null);
+
+// Get the axios instance from the Nuxt app
+const { $axios } = useNuxtApp();
+
+// Function to fetch top artists data from the API
+const fetchTopArtists = async () => {
+  try {
+    loading.value = true;
+    error.value = null; // Reset error
+
+    const token = localStorage.getItem("spotify_access_token");
+    if (!token) {
+      error.value = "No Spotify access token found in localStorage.";
+      loading.value = false;
+      return;
+    }
+
+    const headers = { Authorization: `Bearer ${token}` };
+    const response = await $axios.get(`/top-artists?time_range=medium_term`, {
+      headers,
+    });
+
+    // Update the local state with fetched data
+    artists.value = response.data.items;
+    processedArtists.value = preprocessArtistNames(artists.value);
+    console.log("Fetched Top Artists:", response.data.items);
+  } catch (err) {
+    error.value = "Error fetching top artists data.";
+    console.error(error.value, err);
+  } finally {
+    loading.value = false;
+  }
+};
 
 // Helper function to preprocess artist names
 const preprocessArtistNames = (artists) => {
@@ -237,23 +284,24 @@ const drawLeaderboard = () => {
     );
 };
 
-// Watch for changes in artists and reprocess if necessary
+// Watch for changes in `artists` and update the chart
 watch(
-  () => props.artists,
+  artists,
   (newArtists) => {
     if (newArtists.length > 0) {
       processedArtists.value = preprocessArtistNames(newArtists);
+      drawLeaderboard();
     }
   },
   { immediate: true }
 );
 
-// Draw leaderboard on mount and when processed artists change
+// Draw leaderboard on mount if data exists
 onMounted(() => {
-  drawLeaderboard();
+  if (artists.value.length > 0) {
+    drawLeaderboard();
+  }
 });
-
-watch(processedArtists, drawLeaderboard);
 
 // Computed property to generate the full artist names string
 const fullArtistNames = computed(() => {
