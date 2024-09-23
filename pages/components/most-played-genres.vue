@@ -37,8 +37,9 @@ import * as d3 from "d3";
 import { ref, onMounted, watch } from "vue";
 import { useNuxtApp } from "#app";
 
-// Local state for genres data, loading and error state
-const topGenres = ref([]); // Local state instead of prop
+// Local state for genres data, loading, and error state
+const topGenres = ref([]); // Local state for top genres
+const processedGenres = ref([]); // Local state for processed genres (top 10)
 const loading = ref(false);
 const error = ref(null);
 
@@ -70,19 +71,28 @@ const fetchTopGenres = async () => {
 
     const headers = { Authorization: `Bearer ${token}` };
     const response = await $axios.get(
-      `/top-genres?time_range=${localTimeRange.value}`,
+      `/top-genres?time_range=${localTimeRange.value}`, // Fetch all genres
       { headers }
     );
 
     // Update the local state with fetched data
     topGenres.value = response.data.top_genres;
-    console.log("Fetched Top Genres:", response.data.top_genres);
+    // Process and limit to top 10 most popular genres based on artist count
+    processedGenres.value = preprocessGenres(topGenres.value);
+    console.log("Fetched and Processed Top Genres:", processedGenres.value);
   } catch (err) {
     error.value = "Error fetching top genres data.";
     console.error(error.value, err);
   } finally {
     loading.value = false;
   }
+};
+
+// Function to preprocess and limit genres data to top 10 based on artist count
+const preprocessGenres = (genres) => {
+  return genres
+    .sort((a, b) => b.count - a.count) // Sort genres by count in descending order
+    .slice(0, 10); // Limit to top 10 genres
 };
 
 // Function to draw the genres chart
@@ -323,9 +333,9 @@ const drawGenresChart = (genres) => {
     .style("font-weight", "bold");
 };
 
-// Watch for changes in topGenres and draw chart
+// Watch for changes in processedGenres and draw chart
 watch(
-  topGenres,
+  processedGenres,
   (newGenres) => {
     if (newGenres && newGenres.length > 0) {
       drawGenresChart(newGenres);
@@ -336,8 +346,8 @@ watch(
 
 // Draw genres chart on mount if data exists
 onMounted(() => {
-  if (topGenres.value && topGenres.value.length > 0) {
-    drawGenresChart(topGenres.value);
+  if (processedGenres.value && processedGenres.value.length > 0) {
+    drawGenresChart(processedGenres.value);
   }
 });
 </script>

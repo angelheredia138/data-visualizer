@@ -56,9 +56,13 @@ const fetchTopArtists = async () => {
     }
 
     const headers = { Authorization: `Bearer ${token}` };
-    const response = await $axios.get(`/top-artists?time_range=medium_term`, {
-      headers,
-    });
+    const response = await $axios.get(
+      `/top-artists?time_range=medium_term&limit=10`,
+      {
+        // Added limit=10
+        headers,
+      }
+    );
 
     // Update the local state with fetched data
     artists.value = response.data.items;
@@ -75,7 +79,8 @@ const fetchTopArtists = async () => {
 // Helper function to preprocess artist names
 const preprocessArtistNames = (artists) => {
   const truncateLimit = 18;
-  return artists.slice(0, 25).map((artist) => {
+  return artists.slice(0, 10).map((artist) => {
+    // Added slice to limit processed artists to 10
     if (artist.name.length > truncateLimit && artist.name.includes(" ")) {
       const abbreviation = artist.name
         .split(" ")
