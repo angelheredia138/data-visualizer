@@ -114,6 +114,8 @@ const handleLogout = () => {
 .animated-background {
   background-color: #e0f7fa;
   padding: 20px;
+  overflow: auto;
+
   display: flex;
   justify-content: center;
   align-items: center;

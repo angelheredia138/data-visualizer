@@ -1,10 +1,5 @@
 <template>
   <div class="chart-container-transparent" style="flex: 1; padding: 10px">
-    <!-- Button to trigger data fetching -->
-    <v-btn color="blue" @click="fetchTopArtists" :disabled="loading">
-      {{ loading ? "Fetching..." : "Fetch Data" }}
-    </v-btn>
-
     <!-- Chart container -->
     <svg id="d3-leaderboard" style="width: 100%; height: 100%"></svg>
 
@@ -102,15 +97,15 @@ const drawLeaderboard = () => {
   const svg = d3
     .select("#d3-leaderboard")
     .attr("preserveAspectRatio", "xMinYMin meet")
-    .attr("viewBox", `0 0 ${800} ${650}`)
+    .attr("viewBox", `0 0 ${1000} ${800}`)
     .classed("svg-content-responsive", true)
     .style("background-color", "transparent");
 
   svg.selectAll("*").remove(); // Clear the chart before drawing
 
   const margin = { top: 20, right: 30, bottom: 150, left: 150 };
-  const width = 800 - margin.left - margin.right;
-  const height = 650 - margin.top - margin.bottom;
+  const width = 1000 - margin.left - margin.right;
+  const height = 800 - margin.top - margin.bottom;
 
   const x = d3
     .scaleLinear()
@@ -121,7 +116,7 @@ const drawLeaderboard = () => {
   const y = d3
     .scaleBand()
     .domain(processedArtists.value.map((d) => d.displayName))
-    .range([0, height])
+    .range([height, 0])
     .padding(0.1);
 
   const chart = svg
@@ -303,21 +298,16 @@ watch(
 
 // Draw leaderboard on mount if data exists
 onMounted(() => {
-  if (artists.value.length > 0) {
-    drawLeaderboard();
-  }
-});
-
-// Computed property to generate the full artist names string
-const fullArtistNames = computed(() => {
-  return processedArtists.value
-    .filter((artist) => artist.displayName.includes("*"))
-    .map((artist) => artist.fullName)
-    .join(", ");
+  fetchTopArtists(); // Fetch data immediately on component mount
 });
 </script>
 
 <style scoped>
+#d3-genres-chart,
+#d3-leaderboard {
+  display: block; /* Display block to center using margin auto */
+  margin: auto; /* Center the SVG horizontally */
+}
 .chart-container-transparent {
   flex: 1;
   padding: 10px;

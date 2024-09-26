@@ -1,61 +1,54 @@
 <template>
   <v-container fluid class="animated-background">
-    <!-- Floating Title and Back Button -->
+    <!-- Fixed Title and Back Button -->
     <div class="header-container">
       <h1 class="page-title">Genre Ranking and Artist Leaderboard!</h1>
-      <v-btn class="back-button" @click="goBack">Back to Home</v-btn>
+      <v-btn color="primary" class="back-button" @click="goBack"
+        >Back to Home</v-btn
+      >
     </div>
 
-    <!-- Top Card for Chart Explanations -->
-    <v-card class="explanation-card mx-auto" max-width="1000" elevation="4">
-      <v-card-text>
-        <h2
-          class="text-center"
-          style="color: #2f855a; font-size: 1.5em; font-weight: 700"
-        >
-          Chart Explanations
-        </h2>
-        <p class="text-center" style="font-size: 1em">
-          <strong>Most Played Genres:</strong> Displays the top genres you have
-          listened to in the selected time range. Hover or tap on the bars to
-          see the count of artists contributing to each genre.
-        </p>
-        <p class="text-center" style="font-size: 1em">
-          <strong>Artist Leaderboard:</strong> Shows the most listened-to
-          artists in the selected time range. Hover or tap on the bars to get
-          more details about each artist and their popularity.
-        </p>
-        <p class="text-center" style="font-size: 1em">
-          <strong>Random Genre Generator:</strong> Generate a random genre you
-          have listened to at least once. This can help you discover less
-          frequently played genres in your listening history.
-        </p>
-        <p class="text-center" style="font-size: 1em">
-          These charts are created using D3.js.
-        </p>
-      </v-card-text>
-    </v-card>
+    <!-- Top Section for Chart Explanations -->
+    <div class="explanation-section mx-auto" style="max-width: 800px">
+      <h2 class="subtitle">Chart Explanations</h2>
+      <p class="explanation-text">
+        <strong>Most Played Genres:</strong> Displays the top genres you have
+        listened to in the selected time range. Hover or tap on the bars to see
+        the count of artists contributing to each genre.
+      </p>
+      <p class="explanation-text">
+        <strong>Artist Leaderboard:</strong> Shows the most listened-to artists
+        in the selected time range. Hover or tap on the bars to get more details
+        about each artist and their popularity.
+      </p>
+      <p class="explanation-text">
+        <strong>Random Genre Generator:</strong> Generate a random genre you
+        have listened to at least once. This can help you discover less
+        frequently played genres in your listening history.
+      </p>
+      <p class="explanation-text">These charts are created using D3.js.</p>
+    </div>
 
-    <!-- Responsive layout for the graph cards -->
-    <v-row class="mt-4" align="center" justify="center">
-      <!-- Most Played Genres Card -->
-      <v-col cols="12" md="5" class="d-flex justify-center mb-4">
-        <v-card max-width="500" elevation="4" class="graph-card">
-          <v-card-title class="text-center">Most Played Genres</v-card-title>
-          <v-card-text>
+    <!-- Grid Layout for Charts -->
+    <v-row class="mt-4 grid-container" align="center" justify="center">
+      <!-- Most Played Genres Grid Cell -->
+      <v-col cols="12" md="6" class="grid-cell mb-4">
+        <div class="grid-item">
+          <h3 class="grid-title">Most Played Genres</h3>
+          <div class="graph-container">
             <MostPlayedGenres />
-          </v-card-text>
-        </v-card>
+          </div>
+        </div>
       </v-col>
 
-      <!-- Artist Leaderboard Card -->
-      <v-col cols="12" md="5" class="d-flex justify-center mb-4">
-        <v-card max-width="500" elevation="4" class="graph-card">
-          <v-card-title class="text-center">Artist Leaderboard</v-card-title>
-          <v-card-text>
+      <!-- Artist Leaderboard Grid Cell -->
+      <v-col cols="12" md="6" class="grid-cell mb-4">
+        <div class="grid-item">
+          <h3 class="grid-title">Artist Leaderboard</h3>
+          <div class="graph-container" style="padding-bottom: 8px">
             <ArtistLeaderboard />
-          </v-card-text>
-        </v-card>
+          </div>
+        </div>
       </v-col>
     </v-row>
 
@@ -70,10 +63,35 @@
 import { useRouter } from "vue-router";
 import MostPlayedGenres from "~/pages/components/most-played-genres.vue";
 import ArtistLeaderboard from "~/pages/components/artist-leaderboard.vue";
-import { ref } from "vue";
+import { ref, reactive, onMounted, onBeforeUnmount } from "vue";
 
 // State for loading
 const loading = ref(true);
+
+// Responsive screen size state
+const screenSize = reactive({
+  width: window.innerWidth,
+  height: window.innerHeight,
+  isSmall: window.innerWidth < 768,
+});
+
+// Function to update screen size state
+const updateScreenSize = () => {
+  screenSize.width = window.innerWidth;
+  screenSize.height = window.innerHeight;
+  screenSize.isSmall = window.innerWidth < 768;
+};
+
+// Add event listener on mount
+onMounted(() => {
+  window.addEventListener("resize", updateScreenSize);
+  updateScreenSize(); // Initialize with current size
+});
+
+// Remove event listener on before unmount
+onBeforeUnmount(() => {
+  window.removeEventListener("resize", updateScreenSize);
+});
 
 // Mock loading delay for demonstration (Remove in production)
 setTimeout(() => {
@@ -83,38 +101,53 @@ setTimeout(() => {
 // Navigation handler to go back to the home page
 const router = useRouter();
 const goBack = () => {
-  router.push("/");
+  router.push("/main");
 };
 </script>
 
 <style scoped>
+/* Global box-sizing and overflow handling */
+*,
+*::before,
+*::after {
+  box-sizing: border-box; /* Include padding and border in width and height */
+}
+
+html,
+body,
+#app {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto; /* Allow the entire page to scroll vertically */
+  overflow-x: hidden; /* Prevent horizontal scrolling */
+}
+
+/* Main Container Styling */
 .animated-background {
   background: linear-gradient(270deg, #4299e1, #48bb78, #4299e1);
   background-size: 600% 600%;
   animation: gradientAnimation 10s ease infinite;
-  height: 100vh;
-  width: 100%;
+  min-height: 100vh; /* Ensure the container covers the full viewport */
   display: flex;
-  justify-content: center;
-  align-items: center;
   flex-direction: column;
+  align-items: center;
+  overflow: auto;
+  justify-content: flex-start; /* Align items at the top */
+  padding: 20px; /* Adjust padding to accommodate fixed header */
+  box-sizing: border-box; /* Include padding and border in width and height */
 }
 
-/* Floating Title and Button */
+/* Fixed Title and Button */
 .header-container {
-  position: fixed;
-  top: 20px;
-  left: 0;
   width: 100%;
   text-align: center;
-  z-index: 10;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  margin-bottom: 20px; /* Space between header and explanation card */
+  flex-shrink: 0; /* Prevent shrinking of header */
 }
 
 .page-title {
-  color: #2f855a;
+  color: white;
   font-size: 2.5em;
   font-weight: 700;
   margin-bottom: 10px;
@@ -122,7 +155,7 @@ const goBack = () => {
 
 .back-button {
   background-color: #e53e3e !important; /* Red color */
-  color: white !important;
+  color: white;
   text-transform: none;
   font-size: 1.1em;
   width: 150px;
@@ -133,22 +166,64 @@ const goBack = () => {
   background-color: #c53030 !important; /* Slightly darker red */
 }
 
-/* Explanation Card */
-.explanation-card {
+/* Explanation Section */
+.explanation-section {
   background-color: rgba(255, 255, 255, 0.85); /* Semi-transparent white */
   padding: 20px;
+  border-radius: 8px; /* Rounded corners */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Slight shadow */
+  margin-bottom: 20px; /* Space below the explanation section */
+  width: 100%; /* Ensure the section takes full width */
+  max-width: 800px; /* Limit the max width for better layout */
+  flex-shrink: 0; /* Prevent shrinking */
 }
 
-/* Graph Cards */
-.graph-card {
-  padding: 20px;
+/* Grid Container for Charts */
+.grid-container {
+  width: 100%;
+  max-width: 1200px;
+  flex-grow: 1; /* Allow grid container to grow */
+  box-sizing: border-box; /* Include padding and border in width and height */
+  overflow: visible; /* Allow content to flow outside if necessary */
+}
+
+/* Grid Cell Styling */
+.grid-cell {
+  padding: 15px; /* Space around each grid cell */
+}
+
+/* Grid Item Styling */
+.grid-item {
   background-color: rgba(255, 255, 255, 0.85); /* Semi-transparent white */
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  min-height: 400px; /* Minimum height for grid items */
+  overflow: hidden; /* Hide any overflowing content */
 }
 
+/* Grid Title */
+.grid-title {
+  font-size: 1.2em;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+/* Graph Container */
+.graph-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+  overflow: hidden; /* Hide any overflowing content */
+}
+
+/* Responsive Adjustments */
 @media (max-width: 768px) {
-  /* For mobile view, stack the graph cards vertically */
+  /* For mobile view, stack the grid cells vertically */
   .header-container {
-    position: static;
     margin-bottom: 20px;
   }
 
@@ -156,12 +231,21 @@ const goBack = () => {
     font-size: 2em;
   }
 
-  .explanation-card {
+  .explanation-section {
     max-width: 100%;
   }
 
-  .graph-card {
-    max-width: 100%;
+  .grid-cell {
+    padding: 10px; /* Adjust padding for better fit on mobile */
+  }
+
+  .grid-item {
+    padding: 15px; /* Adjust padding inside grid item */
+    min-height: 300px; /* Reduced height for mobile */
+  }
+
+  .graph-container {
+    height: 300px; /* Adjust height for better fit on mobile */
   }
 }
 </style>

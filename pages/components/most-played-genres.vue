@@ -1,34 +1,32 @@
 <template>
   <div class="chart-container-transparent" style="flex: 1; padding: 10px">
-    <!-- Button to trigger data fetching -->
-    <v-btn color="blue" @click="fetchTopGenres" :disabled="loading">
-      {{ loading ? "Fetching..." : "Fetch Data" }}
-    </v-btn>
-
     <!-- Chart container -->
     <svg id="d3-genres-chart" style="width: 100%; height: 100%"></svg>
 
-    <!-- Time range selection dropdown -->
+    <!-- Time range selection dropdown using native select -->
     <div class="time-range-controls">
-      <v-select
+      <label for="timeRangeSelect" class="dropdown-label">Time Range:</label>
+      <select
+        id="timeRangeSelect"
         v-model="localTimeRange"
-        :items="timeRangeOptions"
-        label="Time Range"
-        outlined
-        dense
-        class="dropdown"
-      ></v-select>
+        @change="fetchTopGenres"
+        class="custom-dropdown"
+      >
+        <option
+          v-for="option in timeRangeOptions"
+          :key="option.value"
+          :value="option.value"
+        >
+          {{ option.text }}
+        </option>
+      </select>
     </div>
 
     <!-- Error message -->
-    <v-alert v-if="error" type="error">{{ error }}</v-alert>
+    <div v-if="error" class="error-message">{{ error }}</div>
 
     <!-- Loading spinner -->
-    <v-progress-circular
-      v-if="loading"
-      indeterminate
-      color="green"
-    ></v-progress-circular>
+    <div v-if="loading" class="loading-spinner">Loading...</div>
   </div>
 </template>
 
@@ -43,15 +41,18 @@ const processedGenres = ref([]); // Local state for processed genres (top 10)
 const loading = ref(false);
 const error = ref(null);
 
+// Default time range used by the API, set it to 'medium_term' or whichever is the API's default
+const defaultTimeRange = "medium_term";
+
 // Local state for time range selection
-const localTimeRange = ref("medium_term");
+const localTimeRange = ref(defaultTimeRange); // Initialize to the default value expected by the API
 
 // Time range options
-const timeRangeOptions = ref([
+const timeRangeOptions = [
   { value: "short_term", text: "Last 4 weeks" },
   { value: "medium_term", text: "Last 6 months" },
   { value: "long_term", text: "All time" },
-]);
+];
 
 // Get the axios instance from the Nuxt app
 const { $axios } = useNuxtApp();
@@ -71,7 +72,7 @@ const fetchTopGenres = async () => {
 
     const headers = { Authorization: `Bearer ${token}` };
     const response = await $axios.get(
-      `/top-genres?time_range=${localTimeRange.value}`, // Fetch all genres
+      `/top-genres?time_range=${localTimeRange.value}`, // Fetch genres based on selected time range
       { headers }
     );
 
@@ -100,21 +101,21 @@ const drawGenresChart = (genres) => {
   const svg = d3
     .select("#d3-genres-chart")
     .attr("preserveAspectRatio", "xMinYMin meet")
-    .attr("viewBox", `0 0 ${800} ${650}`)
+    .attr("viewBox", `0 0 ${1000} ${800}`) // Increased viewBox size for better scaling
     .classed("svg-content-responsive", true)
     .style("background-color", "transparent");
 
   svg.selectAll("*").remove(); // Clear the chart before drawing
 
   const margin = {
-    top: 20,
+    top: 20, // Increased top margin for better spacing
     right: 30,
-    bottom: 150,
-    left: 50,
+    bottom: 150, // Increased bottom margin for better x-axis label display
+    left: 150, // Increased left margin for better y-axis label display
   };
 
-  const width = 800 - margin.left - margin.right;
-  const height = 650 - margin.top - margin.bottom;
+  const width = 1000 - margin.left - margin.right; // Adjusted width
+  const height = 800 - margin.top - margin.bottom; // Adjusted height
 
   const x = d3
     .scaleBand()
@@ -324,7 +325,7 @@ const drawGenresChart = (genres) => {
   svg
     .append("text")
     .attr("x", -(height / 2) - margin.top)
-    .attr("y", margin.left - 30)
+    .attr("y", margin.left - 50) // Adjusted y-axis label position
     .attr("transform", "rotate(-90)")
     .attr("text-anchor", "middle")
     .style("font-size", "20px")
@@ -344,19 +345,28 @@ watch(
   { immediate: true }
 );
 
+// Watch for changes in localTimeRange and refetch genres
+watch(localTimeRange, (newTimeRange) => {
+  fetchTopGenres(); // Fetch new data based on the selected time range
+});
+
 // Draw genres chart on mount if data exists
 onMounted(() => {
-  if (processedGenres.value && processedGenres.value.length > 0) {
-    drawGenresChart(processedGenres.value);
-  }
+  fetchTopGenres(); // Fetch data immediately on component mount
 });
 </script>
 
 <style scoped>
+#d3-genres-chart,
+#d3-leaderboard {
+  display: block; /* Display block to center using margin auto */
+  margin: auto; /* Center the SVG horizontally */
+}
 .chart-container-transparent {
   flex: 1;
   padding: 10px;
-  /* Add additional styling as needed */
+  width: 100%; /* Ensure full width */
+  height: 100%; /* Ensure full height */
 }
 
 /* Tooltip styling */
@@ -367,9 +377,27 @@ onMounted(() => {
   color: #333;
 }
 
-/* Dropdown style */
-.dropdown {
+/* Custom dropdown styling */
+.custom-dropdown {
   margin-top: 16px;
   width: 200px;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+/* Error message styling */
+.error-message {
+  color: red;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+/* Loading spinner styling */
+.loading-spinner {
+  color: green;
+  font-weight: bold;
+  margin-top: 10px;
 }
 </style>

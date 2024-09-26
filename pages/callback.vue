@@ -52,6 +52,7 @@ onMounted(async () => {
 .animated-background {
   background-color: #2f855a; /* Matching the green theme */
   display: flex;
+  overflow: auto;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
