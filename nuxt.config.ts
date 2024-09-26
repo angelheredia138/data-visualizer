@@ -1,6 +1,9 @@
 export default defineNuxtConfig({
   css: ["~/assets/css/global.css"], // Include your global CSS file here
-
+  devServer: {
+    host: "0.0.0.0",
+    port: 3000,
+  },
   build: {
     transpile: ["vuetify"],
   },

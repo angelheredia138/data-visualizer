@@ -77,10 +77,14 @@ const fetchTopGenres = async () => {
     );
 
     // Update the local state with fetched data
-    topGenres.value = response.data.top_genres;
+    topGenres.value = response.data.top_genres.map((genre) => ({
+      genre: genre.genre,
+      count: genre.count,
+      artists: genre.artists, // Ensure the artists data is stored
+    }));
+
     // Process and limit to top 10 most popular genres based on artist count
     processedGenres.value = preprocessGenres(topGenres.value);
-    console.log("Fetched and Processed Top Genres:", processedGenres.value);
   } catch (err) {
     error.value = "Error fetching top genres data.";
     console.error(error.value, err);
@@ -189,12 +193,16 @@ const drawGenresChart = (genres) => {
     .style("filter", "url(#drop-shadow)")
     .on("mouseover", function (event, d) {
       isHovering = true;
-      const description = d.description || "No artists available";
+      const artists =
+        d.artists && d.artists.length > 0
+          ? d.artists.join(", ")
+          : "No artists available";
       const maxArtists = 5;
-      const artistList = description.split(": ")[1];
-      const artists = artistList ? artistList.split(", ") : [];
-      const displayedArtists = artists.slice(0, maxArtists).join(", ");
-      const ellipsis = artists.length > maxArtists ? "..." : "";
+      const displayedArtists = artists
+        .split(", ")
+        .slice(0, maxArtists)
+        .join(", ");
+      const ellipsis = artists.split(", ").length > maxArtists ? "..." : "";
       const finalDescription = `Artists: ${displayedArtists}${ellipsis}`;
       tooltip
         .style("display", "block")
@@ -232,12 +240,16 @@ const drawGenresChart = (genres) => {
         .style("fill", "steelblue");
 
       if (!isHighlighted) {
-        const description = d.description || "No artists available";
+        const artists =
+          d.artists && d.artists.length > 0
+            ? d.artists.join(", ")
+            : "No artists available";
         const maxArtists = 5;
-        const artistList = description.split(": ")[1];
-        const artists = artistList ? artistList.split(", ") : [];
-        const displayedArtists = artists.slice(0, maxArtists).join(", ");
-        const ellipsis = artists.length > maxArtists ? "..." : "";
+        const displayedArtists = artists
+          .split(", ")
+          .slice(0, maxArtists)
+          .join(", ");
+        const ellipsis = artists.split(", ").length > maxArtists ? "..." : "";
         const finalDescription = `Artists: ${displayedArtists}${ellipsis}`;
         tooltip
           .style("display", "block")

@@ -1,61 +1,76 @@
 <template>
   <v-container fluid class="animated-background">
-    <!-- Fixed Title and Back Button -->
-    <div class="header-container">
-      <h1 class="page-title">Genre Ranking and Artist Leaderboard!</h1>
-      <v-btn color="primary" class="back-button" @click="goBack"
-        >Back to Home</v-btn
-      >
+    <!-- Fullscreen Loading Spinner and Message -->
+    <div v-show="showLoadingOverlay" class="loading-overlay">
+      <v-progress-circular
+        :size="80"
+        :width="8"
+        indeterminate
+        color="white"
+        class="loading-spinner"
+      ></v-progress-circular>
+      <div class="loading-message">Loading...</div>
     </div>
 
-    <!-- Top Section for Chart Explanations -->
-    <div class="explanation-section mx-auto" style="max-width: 800px">
-      <h2 class="subtitle">Chart Explanations</h2>
-      <p class="explanation-text">
-        <strong>Most Played Genres:</strong> Displays the top genres you have
-        listened to in the selected time range. Hover or tap on the bars to see
-        the count of artists contributing to each genre.
-      </p>
-      <p class="explanation-text">
-        <strong>Artist Leaderboard:</strong> Shows the most listened-to artists
-        in the selected time range. Hover or tap on the bars to get more details
-        about each artist and their popularity.
-      </p>
-      <p class="explanation-text">
-        <strong>Random Genre Generator:</strong> Generate a random genre you
-        have listened to at least once. This can help you discover less
-        frequently played genres in your listening history.
-      </p>
-      <p class="explanation-text">These charts are created using D3.js.</p>
+    <!-- Content to show behind loading overlay -->
+    <div>
+      <!-- Fixed Title and Back Button -->
+      <div class="header-container">
+        <h1 class="page-title">Genre Ranking and Artist Leaderboard!</h1>
+        <v-btn color="primary" class="back-button" @click="goBack">
+          Back to Home
+        </v-btn>
+      </div>
+
+      <!-- Top Section for Chart Explanations -->
+      <div class="explanation-section mx-auto" style="max-width: 800px">
+        <h2 class="subtitle">Chart Explanations</h2>
+        <p class="explanation-text">
+          <strong>Most Played Genres:</strong> Displays the top genres you have
+          listened to in the selected time range. Hover or tap on the bars to
+          see the count of artists contributing to each genre.
+        </p>
+        <p class="explanation-text">
+          <strong>Artist Leaderboard:</strong> Shows the most listened-to
+          artists in the selected time range. Hover or tap on the bars to get
+          more details about each artist and their popularity.
+        </p>
+        <p class="explanation-text">
+          <strong>Random Genre Generator:</strong> Generate a random genre you
+          have listened to at least once. This can help you discover less
+          frequently played genres in your listening history.
+        </p>
+        <p class="explanation-text">These charts are created using D3.js.</p>
+      </div>
+
+      <!-- Grid Layout for Charts -->
+      <v-row class="mt-4 grid-container" align="center" justify="center">
+        <!-- Most Played Genres Grid Cell -->
+        <v-col cols="12" md="6" class="grid-cell mb-4">
+          <div class="grid-item">
+            <h3 class="grid-title">Most Played Genres</h3>
+            <div class="graph-container">
+              <MostPlayedGenres />
+            </div>
+          </div>
+        </v-col>
+
+        <!-- Artist Leaderboard Grid Cell -->
+        <v-col cols="12" md="6" class="grid-cell mb-4">
+          <div class="grid-item">
+            <h3 class="grid-title">Artist Leaderboard</h3>
+            <div class="graph-container">
+              <ArtistLeaderboard />
+            </div>
+          </div>
+        </v-col>
+      </v-row>
+
+      <!-- Random Genre Generator Button Component -->
+      <v-row justify="center" class="mt-4">
+        <RandomGenreButton />
+      </v-row>
     </div>
-
-    <!-- Grid Layout for Charts -->
-    <v-row class="mt-4 grid-container" align="center" justify="center">
-      <!-- Most Played Genres Grid Cell -->
-      <v-col cols="12" md="6" class="grid-cell mb-4">
-        <div class="grid-item">
-          <h3 class="grid-title">Most Played Genres</h3>
-          <div class="graph-container">
-            <MostPlayedGenres />
-          </div>
-        </div>
-      </v-col>
-
-      <!-- Artist Leaderboard Grid Cell -->
-      <v-col cols="12" md="6" class="grid-cell mb-4">
-        <div class="grid-item">
-          <h3 class="grid-title">Artist Leaderboard</h3>
-          <div class="graph-container" style="padding-bottom: 8px">
-            <ArtistLeaderboard />
-          </div>
-        </div>
-      </v-col>
-    </v-row>
-
-    <!-- Loading Spinner -->
-    <v-row v-if="loading" justify="center" class="mt-6">
-      <v-progress-circular indeterminate color="green"></v-progress-circular>
-    </v-row>
   </v-container>
 </template>
 
@@ -63,10 +78,11 @@
 import { useRouter } from "vue-router";
 import MostPlayedGenres from "~/pages/components/most-played-genres.vue";
 import ArtistLeaderboard from "~/pages/components/artist-leaderboard.vue";
+import RandomGenreButton from "~/pages/components/random-genre.vue"; // Import the Random Genre Button component
 import { ref, reactive, onMounted, onBeforeUnmount } from "vue";
 
-// State for loading
-const loading = ref(true);
+// State for showing the loading overlay
+const showLoadingOverlay = ref(true);
 
 // Responsive screen size state
 const screenSize = reactive({
@@ -86,17 +102,17 @@ const updateScreenSize = () => {
 onMounted(() => {
   window.addEventListener("resize", updateScreenSize);
   updateScreenSize(); // Initialize with current size
+
+  // Hide the loading overlay after 2 seconds (or whatever duration you need)
+  setTimeout(() => {
+    showLoadingOverlay.value = false;
+  }, 2000); // 2 seconds delay
 });
 
 // Remove event listener on before unmount
 onBeforeUnmount(() => {
   window.removeEventListener("resize", updateScreenSize);
 });
-
-// Mock loading delay for demonstration (Remove in production)
-setTimeout(() => {
-  loading.value = false;
-}, 2000);
 
 // Navigation handler to go back to the home page
 const router = useRouter();
@@ -136,6 +152,33 @@ body,
   justify-content: flex-start; /* Align items at the top */
   padding: 20px; /* Adjust padding to accommodate fixed header */
   box-sizing: border-box; /* Include padding and border in width and height */
+}
+
+/* Loading Overlay for Spinner and Message */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(270deg, #4299e1, #48bb78, #4299e1);
+  background-size: 600% 600%;
+  animation: gradientAnimation 10s ease infinite;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999; /* Ensure it is on top of all other elements */
+}
+
+.loading-spinner {
+  margin-bottom: 20px;
+}
+
+.loading-message {
+  font-size: 1.5em;
+  font-weight: bold;
+  color: white;
 }
 
 /* Fixed Title and Button */
@@ -220,6 +263,12 @@ body,
   overflow: hidden; /* Hide any overflowing content */
 }
 
+/* Random Genre Button Centering */
+.v-row {
+  justify-content: center;
+  align-items: center;
+}
+
 /* Responsive Adjustments */
 @media (max-width: 768px) {
   /* For mobile view, stack the grid cells vertically */
@@ -246,6 +295,19 @@ body,
 
   .graph-container {
     height: 300px; /* Adjust height for better fit on mobile */
+  }
+}
+
+/* Animation for the background gradient */
+@keyframes gradientAnimation {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
   }
 }
 </style>
