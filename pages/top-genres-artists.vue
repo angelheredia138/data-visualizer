@@ -119,6 +119,10 @@ const router = useRouter();
 const goBack = () => {
   router.push("/main");
 };
+// Update the window title using useHead
+useHead({
+  title: "Genre Ranking and Artist Leaderboard!",
+});
 </script>
 
 <style scoped>
@@ -148,7 +152,6 @@ body,
   display: flex;
   flex-direction: column;
   align-items: center;
-  overflow: auto;
   justify-content: flex-start; /* Align items at the top */
   padding: 20px; /* Adjust padding to accommodate fixed header */
   box-sizing: border-box; /* Include padding and border in width and height */
@@ -191,7 +194,7 @@ body,
 
 .page-title {
   color: white;
-  font-size: 2.5em;
+  font-size: 2em; /* Smaller font size */
   font-weight: 700;
   margin-bottom: 10px;
 }
@@ -200,9 +203,9 @@ body,
   background-color: #e53e3e !important; /* Red color */
   color: white;
   text-transform: none;
-  font-size: 1.1em;
-  width: 150px;
-  height: 40px;
+  font-size: 1em; /* Smaller font size */
+  width: 130px; /* Smaller width */
+  height: 36px; /* Smaller height */
 }
 
 .back-button:hover {
@@ -212,19 +215,29 @@ body,
 /* Explanation Section */
 .explanation-section {
   background-color: rgba(255, 255, 255, 0.85); /* Semi-transparent white */
-  padding: 20px;
+  padding: 12px; /* Reduced padding */
   border-radius: 8px; /* Rounded corners */
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Slight shadow */
-  margin-bottom: 20px; /* Space below the explanation section */
+  margin-bottom: 15px; /* Space below the explanation section */
   width: 100%; /* Ensure the section takes full width */
-  max-width: 800px; /* Limit the max width for better layout */
+  max-width: 700px; /* Reduce the max width */
   flex-shrink: 0; /* Prevent shrinking */
+}
+
+.subtitle {
+  font-size: 1.2em; /* Reduced subtitle font size */
+  text-align: center; /* Center the subtitle */
+}
+
+.explanation-text {
+  font-size: 0.8em; /* Further reduced font size for explanation text */
+  margin-bottom: 8px; /* Less space between explanation paragraphs */
 }
 
 /* Grid Container for Charts */
 .grid-container {
   width: 100%;
-  max-width: 1200px;
+  max-width: 1000px; /* Reduce the max width */
   flex-grow: 1; /* Allow grid container to grow */
   box-sizing: border-box; /* Include padding and border in width and height */
   overflow: visible; /* Allow content to flow outside if necessary */
@@ -232,7 +245,9 @@ body,
 
 /* Grid Cell Styling */
 .grid-cell {
-  padding: 15px; /* Space around each grid cell */
+  padding: 10px; /* Space around each grid cell */
+  display: flex; /* Use flexbox to center content */
+  justify-content: center; /* Center horizontally */
 }
 
 /* Grid Item Styling */
@@ -240,17 +255,19 @@ body,
   background-color: rgba(255, 255, 255, 0.85); /* Semi-transparent white */
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  padding: 20px;
-  min-height: 400px; /* Minimum height for grid items */
+  padding: 15px; /* Adjust padding inside grid item */
+  min-height: 350px; /* Minimum height for grid items */
   overflow: hidden; /* Hide any overflowing content */
+  width: 100%; /* Full width of the grid cell */
+  max-width: 500px; /* Adjust max width for better fit */
 }
 
 /* Grid Title */
 .grid-title {
-  font-size: 1.2em;
+  font-size: 1.1em; /* Reduced font size */
   font-weight: 600;
   text-align: center;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
 }
 
 /* Graph Container */
@@ -269,32 +286,62 @@ body,
   align-items: center;
 }
 
+.random-genre-btn {
+  width: 120px; /* Reduced width */
+  height: 36px; /* Reduced height */
+  font-size: 0.9em; /* Smaller font size */
+  text-transform: none; /* No text transform */
+  margin-top: 10px; /* Space above the button */
+}
+
 /* Responsive Adjustments */
 @media (max-width: 768px) {
   /* For mobile view, stack the grid cells vertically */
   .header-container {
-    margin-bottom: 20px;
+    margin-bottom: 15px; /* Adjust space */
   }
 
   .page-title {
-    font-size: 2em;
+    font-size: 1.5em; /* Smaller font size */
   }
 
   .explanation-section {
-    max-width: 100%;
-  }
-
-  .grid-cell {
+    max-width: 90%; /* Reduce width */
     padding: 10px; /* Adjust padding for better fit on mobile */
   }
 
+  .subtitle {
+    font-size: 1em; /* Smaller font size */
+  }
+
+  .explanation-text {
+    font-size: 0.4em; /* Smaller font size */
+  }
+
+  .grid-cell {
+    padding: 4px; /* Less padding for mobile */
+  }
+
   .grid-item {
-    padding: 15px; /* Adjust padding inside grid item */
+    padding: 0px; /* Reduced padding inside grid item */
     min-height: 300px; /* Reduced height for mobile */
+    max-width: 320px; /* Reduce width for mobile */
+  }
+
+  .grid-title {
+    font-size: 0.9em; /* Smaller font size */
+    margin-bottom: 8px;
   }
 
   .graph-container {
     height: 300px; /* Adjust height for better fit on mobile */
+  }
+
+  /* Adjust Random Genre Button Position */
+  .random-genre-btn {
+    width: 100px; /* Smaller width */
+    height: 34px; /* Smaller height */
+    font-size: 0.8em; /* Smaller font size */
   }
 }
 
