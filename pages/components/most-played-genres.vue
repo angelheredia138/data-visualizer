@@ -175,8 +175,7 @@ const drawGenresChart = (genres) => {
     .style("display", "none");
 
   let isHovering = false;
-  let hoverTimeout = null;
-  let clickTimeout = null;
+  let selectedBar = null;
 
   chart
     .append("g")
@@ -192,54 +191,11 @@ const drawGenresChart = (genres) => {
     .style("fill", "steelblue")
     .style("filter", "url(#drop-shadow)")
     .on("mouseover", function (event, d) {
+      // Set hover flag when the user is hovering
       isHovering = true;
-      const artists =
-        d.artists && d.artists.length > 0
-          ? d.artists.join(", ")
-          : "No artists available";
-      const maxArtists = 5;
-      const displayedArtists = artists
-        .split(", ")
-        .slice(0, maxArtists)
-        .join(", ");
-      const ellipsis = artists.split(", ").length > maxArtists ? "..." : "";
-      const finalDescription = `Artists: ${displayedArtists}${ellipsis}`;
-      tooltip
-        .style("display", "block")
-        .html(
-          `<strong>${d.genre}</strong><br/>Artists Count: ${d.count}<br/> ${finalDescription}`
-        );
-      d3.select(this).style("fill", "darkblue");
-    })
-    .on("mousemove", function (event) {
-      tooltip
-        .style("top", event.pageY - 10 + "px")
-        .style("left", event.pageX + 10 + "px");
-      hoverTimeout = setTimeout(() => {
-        tooltip.style("display", "none");
-      }, 15000); // Hide the tooltip after 15 seconds
-    })
-    .on("mouseout", function () {
-      isHovering = false;
-      tooltip.style("display", "none");
-      d3.select(this).style("fill", function () {
-        return d3.select(this).classed("highlighted")
-          ? "darkblue"
-          : "steelblue";
-      });
-    })
-    .on("click", function (event, d) {
-      if (isHovering) return;
 
-      const rect = d3.select(this);
-      const isHighlighted = rect.classed("highlighted");
-
-      // Remove highlight from all bars
-      d3.selectAll("rect")
-        .classed("highlighted", false)
-        .style("fill", "steelblue");
-
-      if (!isHighlighted) {
+      // Only show tooltip during hover on desktop (hover-capable devices)
+      if (window.matchMedia("(hover: hover)").matches) {
         const artists =
           d.artists && d.artists.length > 0
             ? d.artists.join(", ")
@@ -255,18 +211,81 @@ const drawGenresChart = (genres) => {
           .style("display", "block")
           .html(
             `<strong>${d.genre}</strong><br/>Artists Count: ${d.count}<br/> ${finalDescription}`
-          );
-        rect.classed("highlighted", true).style("fill", "darkblue");
-      } else {
-        tooltip.style("display", "none");
-        rect.classed("highlighted", false).style("fill", "steelblue");
+          )
+          .style("top", event.pageY - 10 + "px")
+          .style("left", event.pageX + 10 + "px");
       }
 
-      clearTimeout(clickTimeout); // Clear any existing timeout
-      clickTimeout = setTimeout(() => {
+      d3.select(this).style("fill", "darkblue");
+    })
+    .on("mousemove", function (event) {
+      // Move the tooltip with the mouse on hover devices
+      if (window.matchMedia("(hover: hover)").matches) {
+        tooltip
+          .style("top", event.pageY - 10 + "px")
+          .style("left", event.pageX + 10 + "px");
+      }
+    })
+    .on("mouseout", function () {
+      // Reset hover flag and hide tooltip on mouse out
+      isHovering = false;
+      tooltip.style("display", "none");
+
+      // Reset the bar color unless it's selected
+      d3.select(this).style("fill", function () {
+        return d3.select(this).classed("highlighted")
+          ? "darkblue"
+          : "steelblue";
+      });
+    })
+    .on("click", function (event, d) {
+      // On devices that support hovering, block click if the user is hovering
+      if (isHovering && window.matchMedia("(hover: hover)").matches) {
+        return;
+      }
+
+      const rect = d3.select(this);
+      const isHighlighted = rect.classed("highlighted");
+
+      // Deselect the previously selected bar if it’s not the current one
+      if (selectedBar && selectedBar !== rect) {
+        selectedBar.classed("highlighted", false).style("fill", "steelblue");
         tooltip.style("display", "none");
+      }
+
+      // Toggle the selection of the clicked bar
+      if (isHighlighted) {
+        // If the bar is already highlighted, unselect it
         rect.classed("highlighted", false).style("fill", "steelblue");
-      }, 5000); // Hide the tooltip after 5 seconds
+        tooltip.style("display", "none");
+        selectedBar = null;
+      } else {
+        // If the bar is not highlighted, select it
+        rect.classed("highlighted", true).style("fill", "darkblue");
+
+        // Show tooltip when clicked on touch devices
+        const artists =
+          d.artists && d.artists.length > 0
+            ? d.artists.join(", ")
+            : "No artists available";
+        const maxArtists = 5;
+        const displayedArtists = artists
+          .split(", ")
+          .slice(0, maxArtists)
+          .join(", ");
+        const ellipsis = artists.split(", ").length > maxArtists ? "..." : "";
+        const finalDescription = `Artists: ${displayedArtists}${ellipsis}`;
+        tooltip
+          .style("display", "block")
+          .html(
+            `<strong>${d.genre}</strong><br/>Artists Count: ${
+              d.count
+            }<br/>Artists: ${d.artists.join(", ")}`
+          )
+          .style("top", event.pageY - 10 + "px")
+          .style("left", event.pageX + 10 + "px");
+        selectedBar = rect;
+      }
     });
 
   const xAxis = chart

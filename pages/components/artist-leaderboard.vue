@@ -197,8 +197,7 @@ const drawLeaderboard = () => {
     .style("display", "none");
 
   let isHovering = false;
-  let hoverTimeout = null;
-  let clickTimeout = null;
+  let selectedBar = null;
 
   chart
     .append("g")
@@ -214,26 +213,36 @@ const drawLeaderboard = () => {
     .style("filter", "url(#drop-shadow)")
     .on("mouseover", function (event, d) {
       isHovering = true;
-      tooltip
-        .style("display", "block")
-        .html(
-          `<strong>${d.fullName}</strong><br/>Popularity: ${
-            d.popularity
-          }<br/>Genres: ${d.genres.join(", ")}`
-        );
+
+      // Show tooltip only on hover-capable devices
+      if (window.matchMedia("(hover: hover)").matches) {
+        tooltip
+          .style("display", "block")
+          .html(
+            `<strong>${d.fullName}</strong><br/>Popularity: ${
+              d.popularity
+            }<br/>Genres: ${d.genres.join(", ")}`
+          )
+          .style("top", event.pageY - 10 + "px")
+          .style("left", event.pageX + 10 + "px");
+      }
+
       d3.select(this).style("fill", "darkblue");
     })
     .on("mousemove", function (event) {
-      tooltip
-        .style("top", event.pageY - 10 + "px")
-        .style("left", event.pageX + 10 + "px");
-      hoverTimeout = setTimeout(() => {
-        tooltip.style("display", "none");
-      }, 15000); // Hide the tooltip after 15 seconds
+      // Move the tooltip with the mouse on hover-capable devices
+      if (window.matchMedia("(hover: hover)").matches) {
+        tooltip
+          .style("top", event.pageY - 10 + "px")
+          .style("left", event.pageX + 10 + "px");
+      }
     })
     .on("mouseout", function () {
       isHovering = false;
+
+      // Hide tooltip on hover-capable devices
       tooltip.style("display", "none");
+
       d3.select(this).style("fill", function () {
         return d3.select(this).classed("highlighted")
           ? "darkblue"
@@ -241,35 +250,42 @@ const drawLeaderboard = () => {
       });
     })
     .on("click", function (event, d) {
-      if (isHovering) return;
+      // If user is hovering and on a hover-capable device, prevent click
+      if (isHovering && window.matchMedia("(hover: hover)").matches) {
+        return;
+      }
 
       const rect = d3.select(this);
       const isHighlighted = rect.classed("highlighted");
 
-      // Remove highlight from all bars
-      d3.selectAll("rect")
-        .classed("highlighted", false)
-        .style("fill", "steelblue");
+      // Deselect the previously selected bar if it's not the current one
+      if (selectedBar && selectedBar !== rect) {
+        selectedBar.classed("highlighted", false).style("fill", "steelblue");
+        tooltip.style("display", "none");
+      }
 
-      if (!isHighlighted) {
+      // Toggle the selection of the clicked bar
+      if (isHighlighted) {
+        // If the bar is already highlighted, unselect it
+        rect.classed("highlighted", false).style("fill", "steelblue");
+        tooltip.style("display", "none");
+        selectedBar = null;
+      } else {
+        // If the bar is not highlighted, select it and show tooltip
+        rect.classed("highlighted", true).style("fill", "darkblue");
+
         tooltip
           .style("display", "block")
           .html(
             `<strong>${d.fullName}</strong><br/>Popularity: ${
               d.popularity
             }<br/>Genres: ${d.genres.join(", ")}`
-          );
-        rect.classed("highlighted", true).style("fill", "darkblue");
-      } else {
-        tooltip.style("display", "none");
-        rect.classed("highlighted", false).style("fill", "steelblue");
-      }
+          )
+          .style("top", event.pageY - 10 + "px")
+          .style("left", event.pageX + 10 + "px");
 
-      clearTimeout(clickTimeout); // Clear any existing timeout
-      clickTimeout = setTimeout(() => {
-        tooltip.style("display", "none");
-        rect.classed("highlighted", false).style("fill", "steelblue");
-      }, 5000); // Hide the tooltip after 5 seconds
+        selectedBar = rect;
+      }
     });
 
   const xAxis = chart

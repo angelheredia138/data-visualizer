@@ -152,11 +152,13 @@ body,
   justify-content: flex-start;
   padding: 30px;
   box-sizing: border-box;
+  overflow-x: hidden; /* Prevent horizontal scrolling */
 }
 
 /* Remove padding from v-container */
 .v-application .v-application--wrap .v-container {
   padding: 0 !important;
+  overflow-x: hidden;
 }
 
 /* Loading Overlay for Spinner and Message */
