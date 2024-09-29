@@ -82,21 +82,18 @@ onMounted(() => {
 <style scoped>
 /* Container styling for the button and displayed genres */
 .random-genre-generator {
-  display: flex;
   flex-direction: column;
-  align-items: center;
-  margin-top: 20px;
+  align-items: stretch;
 }
 
 /* Rainbow button styling */
 .random-genre-button {
-  font-size: 1.5em;
+  font-size: 1.2em;
   padding: 0px 24px;
   border-radius: 10px;
   cursor: pointer;
   border: none;
   background-color: rgba(255, 255, 255, 0.85) !important;
-  margin-bottom: 16px;
 }
 
 .random-genre-button:hover {
@@ -121,7 +118,6 @@ onMounted(() => {
   animation: rainbowText 5s linear infinite;
   font-weight: bold;
   text-transform: uppercase;
-  display: inline-block;
 }
 
 /* Displayed genre and artist information */

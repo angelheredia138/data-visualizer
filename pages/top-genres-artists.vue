@@ -17,13 +17,14 @@
       <!-- Fixed Title and Back Button -->
       <div class="header-container">
         <h1 class="page-title">Genre Ranking and Artist Leaderboard!</h1>
+
         <v-btn color="primary" class="back-button" @click="goBack">
           Back to Home
         </v-btn>
       </div>
 
       <!-- Top Section for Chart Explanations -->
-      <div class="explanation-section mx-auto" style="max-width: 800px">
+      <div class="explanation-section" style="max-width: 800px">
         <h2 class="subtitle">Chart Explanations</h2>
         <p class="explanation-text">
           <strong>Most Played Genres:</strong> Displays the top genres you have
@@ -43,33 +44,29 @@
         <p class="explanation-text">These charts are created using D3.js.</p>
       </div>
 
-      <!-- Grid Layout for Charts -->
-      <v-row class="mt-4 grid-container" align="center" justify="center">
-        <!-- Most Played Genres Grid Cell -->
-        <v-col cols="12" md="6" class="grid-cell mb-4">
-          <div class="grid-item">
-            <h3 class="grid-title">Most Played Genres</h3>
-            <div class="graph-container">
-              <MostPlayedGenres />
-            </div>
+      <!-- Graphs Section -->
+      <div class="graphs-container">
+        <!-- Most Played Genres -->
+        <div class="graph-item">
+          <h3 class="graph-title">Most Played Genres</h3>
+          <div class="graph-content">
+            <MostPlayedGenres />
           </div>
-        </v-col>
+        </div>
 
-        <!-- Artist Leaderboard Grid Cell -->
-        <v-col cols="12" md="6" class="grid-cell mb-4">
-          <div class="grid-item">
-            <h3 class="grid-title">Artist Leaderboard</h3>
-            <div class="graph-container">
-              <ArtistLeaderboard />
-            </div>
+        <!-- Artist Leaderboard -->
+        <div class="graph-item">
+          <h3 class="graph-title">Artist Leaderboard</h3>
+          <div class="graph-content">
+            <ArtistLeaderboard />
           </div>
-        </v-col>
-      </v-row>
+        </div>
+      </div>
 
       <!-- Random Genre Generator Button Component -->
-      <v-row justify="center" class="mt-4">
+      <div class="random-genre-generator">
         <RandomGenreButton />
-      </v-row>
+      </div>
     </div>
   </v-container>
 </template>
@@ -130,7 +127,7 @@ useHead({
 *,
 *::before,
 *::after {
-  box-sizing: border-box; /* Include padding and border in width and height */
+  box-sizing: border-box;
 }
 
 html,
@@ -139,8 +136,8 @@ body,
   height: 100%;
   margin: 0;
   padding: 0;
-  overflow-y: auto; /* Allow the entire page to scroll vertically */
-  overflow-x: hidden; /* Prevent horizontal scrolling */
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 /* Main Container Styling */
@@ -148,13 +145,18 @@ body,
   background: linear-gradient(270deg, #4299e1, #48bb78, #4299e1);
   background-size: 600% 600%;
   animation: gradientAnimation 10s ease infinite;
-  min-height: 100vh; /* Ensure the container covers the full viewport */
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: flex-start; /* Align items at the top */
-  padding: 20px; /* Adjust padding to accommodate fixed header */
-  box-sizing: border-box; /* Include padding and border in width and height */
+  align-items: center; /* Center on mobile */
+  justify-content: flex-start;
+  padding: 30px;
+  box-sizing: border-box;
+}
+
+/* Remove padding from v-container */
+.v-application .v-application--wrap .v-container {
+  padding: 0 !important;
 }
 
 /* Loading Overlay for Spinner and Message */
@@ -171,7 +173,7 @@ body,
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  z-index: 9999; /* Ensure it is on top of all other elements */
+  z-index: 9999;
 }
 
 .loading-spinner {
@@ -188,160 +190,189 @@ body,
 .header-container {
   width: 100%;
   text-align: center;
-  margin-bottom: 20px; /* Space between header and explanation card */
-  flex-shrink: 0; /* Prevent shrinking of header */
+  margin-bottom: 30px;
+  flex-shrink: 0;
 }
 
 .page-title {
   color: white;
-  font-size: 2em; /* Smaller font size */
+  font-size: 2.5em;
   font-weight: 700;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
 }
 
 .back-button {
-  background-color: #e53e3e !important; /* Red color */
+  background-color: #e53e3e !important;
   color: white;
   text-transform: none;
-  font-size: 1em; /* Smaller font size */
-  width: 130px; /* Smaller width */
-  height: 36px; /* Smaller height */
+  font-size: 1.2em;
+  width: 150px;
+  height: 42px;
 }
 
 .back-button:hover {
-  background-color: #c53030 !important; /* Slightly darker red */
+  background-color: #c53030 !important;
 }
 
 /* Explanation Section */
 .explanation-section {
-  background-color: rgba(255, 255, 255, 0.85); /* Semi-transparent white */
-  padding: 12px; /* Reduced padding */
-  border-radius: 8px; /* Rounded corners */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Slight shadow */
-  margin-bottom: 15px; /* Space below the explanation section */
-  width: 100%; /* Ensure the section takes full width */
-  max-width: 700px; /* Reduce the max width */
-  flex-shrink: 0; /* Prevent shrinking */
+  background-color: rgba(255, 255, 255, 0.85);
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  width: 100%;
+  max-width: 800px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .subtitle {
-  font-size: 1.2em; /* Reduced subtitle font size */
-  text-align: center; /* Center the subtitle */
+  font-size: 1.4em;
+  text-align: center;
 }
 
 .explanation-text {
-  font-size: 0.8em; /* Further reduced font size for explanation text */
-  margin-bottom: 8px; /* Less space between explanation paragraphs */
-}
-
-/* Grid Container for Charts */
-.grid-container {
-  width: 100%;
-  max-width: 1000px; /* Reduce the max width */
-  flex-grow: 1; /* Allow grid container to grow */
-  box-sizing: border-box; /* Include padding and border in width and height */
-  overflow: visible; /* Allow content to flow outside if necessary */
-}
-
-/* Grid Cell Styling */
-.grid-cell {
-  padding: 10px; /* Space around each grid cell */
-  display: flex; /* Use flexbox to center content */
-  justify-content: center; /* Center horizontally */
-}
-
-/* Grid Item Styling */
-.grid-item {
-  background-color: rgba(255, 255, 255, 0.85); /* Semi-transparent white */
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  padding: 15px; /* Adjust padding inside grid item */
-  min-height: 350px; /* Minimum height for grid items */
-  overflow: hidden; /* Hide any overflowing content */
-  width: 100%; /* Full width of the grid cell */
-  max-width: 500px; /* Adjust max width for better fit */
-}
-
-/* Grid Title */
-.grid-title {
-  font-size: 1.1em; /* Reduced font size */
-  font-weight: 600;
-  text-align: center;
+  font-size: 1em;
   margin-bottom: 10px;
 }
 
-/* Graph Container */
-.graph-container {
+/* Graphs Container */
+.graphs-container {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
+  flex-direction: column;
   width: 100%;
-  overflow: hidden; /* Hide any overflowing content */
+  align-items: center; /* Center graphs on mobile */
 }
 
-/* Random Genre Button Centering */
-.v-row {
+@media (min-width: 769px) {
+  .animated-background {
+    align-items: stretch; /* Stretch on desktop */
+    padding: 0; /* Remove padding on desktop */
+  }
+  .graphs-container {
+    flex-direction: row;
+    justify-content: center; /* Center graphs horizontally */
+    align-items: flex-start;
+  }
+}
+
+/* Graph Item */
+.graph-item {
+  width: 100%;
+  max-width: 600px; /* Limit the width on mobile */
+  margin: 20px 0;
+  background-color: rgba(
+    255,
+    255,
+    255,
+    0.85
+  ); /* Slightly transparent white background */
+  border-radius: 8px;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+@media (min-width: 769px) {
+  .graph-item {
+    flex: 0 0 37.5%; /* Reduce size by 25% */
+    margin: 0 20px; /* Add space between graphs */
+    max-width: none; /* Remove max-width constraint */
+  }
+}
+
+.graph-title {
+  font-size: 1.8em;
+  color: black;
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.graph-content {
+  width: 100%;
+  height: 100%;
+}
+
+/* Ensure the graph components fill their containers */
+.graph-content > * {
+  width: 100%;
+  height: 100%;
+}
+
+/* Random Genre Generator Styling */
+.random-genre-generator {
+  display: flex;
   justify-content: center;
-  align-items: center;
+  margin-top: 30px;
 }
 
 .random-genre-btn {
-  width: 120px; /* Reduced width */
-  height: 36px; /* Reduced height */
-  font-size: 0.9em; /* Smaller font size */
-  text-transform: none; /* No text transform */
-  margin-top: 10px; /* Space above the button */
+  width: 130px;
+  height: 40px;
+  font-size: 1em;
+  text-transform: none;
+  margin-top: 12px;
 }
 
 /* Responsive Adjustments */
 @media (max-width: 768px) {
-  /* For mobile view, stack the grid cells vertically */
-  .header-container {
-    margin-bottom: 15px; /* Adjust space */
-  }
-
+  /* Reduce the font size of the page title */
   .page-title {
-    font-size: 1.5em; /* Smaller font size */
+    font-size: 1.2em; /* Reduced font size for mobile */
   }
 
+  /* Adjust the header container */
+  .header-container {
+    margin-bottom: 10px; /* Reduced space below the header */
+    padding: 0 15px; /* Add padding to avoid touching the edge */
+  }
+
+  /* Explanation Section */
   .explanation-section {
-    max-width: 90%; /* Reduce width */
-    padding: 10px; /* Adjust padding for better fit on mobile */
+    width: 85%; /* Slightly wider to use more space */
+    padding: 10px; /* Increase padding */
+    margin: 0 auto; /* Center the section */
   }
 
   .subtitle {
-    font-size: 1em; /* Smaller font size */
+    font-size: 0.9em; /* Reduce font size of subtitle */
   }
 
   .explanation-text {
-    font-size: 0.4em; /* Smaller font size */
+    font-size: 0.4em; /* Reduce font size of explanation text */
+    margin-bottom: 8px; /* Adjust spacing */
   }
 
-  .grid-cell {
-    padding: 4px; /* Less padding for mobile */
+  /* Graph Item */
+  .graph-item {
+    max-width: 80%; /* Reduce max-width to make graphs smaller */
+    padding: 0px; /* Increase padding to avoid touching edges */
   }
 
-  .grid-item {
-    padding: 0px; /* Reduced padding inside grid item */
-    min-height: 300px; /* Reduced height for mobile */
-    max-width: 320px; /* Reduce width for mobile */
+  .graph-content {
+    height: 350px; /* Reduce height of graphs */
   }
 
-  .grid-title {
-    font-size: 0.9em; /* Smaller font size */
-    margin-bottom: 8px;
+  .graph-title {
+    font-size: 1.2em; /* Reduce font size */
+    margin-bottom: 10px; /* Adjust spacing */
   }
 
-  .graph-container {
-    height: 300px; /* Adjust height for better fit on mobile */
-  }
-
-  /* Adjust Random Genre Button Position */
+  /* Random Genre Generator Button */
   .random-genre-btn {
-    width: 100px; /* Smaller width */
-    height: 34px; /* Smaller height */
-    font-size: 0.8em; /* Smaller font size */
+    width: 150px; /* Match the width of the back button */
+    height: 42px; /* Match the height of the back button */
+    font-size: 1em; /* Adjust font size */
+  }
+
+  /* Adjust the random genre generator container */
+  .random-genre-generator {
+    margin-top: 20px; /* Reduce top margin */
   }
 }
 

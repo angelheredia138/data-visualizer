@@ -1,7 +1,7 @@
 <template>
   <div class="chart-container-transparent" style="flex: 1; padding: 10px">
     <!-- Chart container -->
-    <svg id="d3-leaderboard" style="width: 100%; height: 100%"></svg>
+    <svg id="d3-leaderboard"></svg>
 
     <!-- Time range selection dropdown using native select below the chart -->
     <div class="time-range-controls">
@@ -278,7 +278,7 @@ const drawLeaderboard = () => {
     .call(d3.axisBottom(x).tickFormat(d3.format("d"))) // Ensure solid numbers on x-axis
     .selectAll("text")
     .style("font-size", "20px")
-    .style("font-family", "'Poppins', sans-serif")
+    .style("font-family", "'Inter', sans-serif")
     .style("font-weight", "bold");
 
   const yAxis = chart
@@ -286,7 +286,7 @@ const drawLeaderboard = () => {
     .call(d3.axisLeft(y).tickSize(0))
     .selectAll("text")
     .style("font-size", "20px")
-    .style("font-family", "'Poppins', sans-serif")
+    .style("font-family", "'Inter', sans-serif")
     .style("font-weight", "bold")
     .attr("transform", "translate(-10,0) rotate(-45)") // Tilt the text
     .style("text-anchor", "end");
@@ -298,7 +298,7 @@ const drawLeaderboard = () => {
     .attr("y", height + margin.top + 50)
     .attr("text-anchor", "middle")
     .style("font-size", "20px")
-    .style("font-family", "'Poppins', sans-serif")
+    .style("font-family", "'Inter', sans-serif")
     .style("font-weight", "bold")
     .text("Popularity");
 
@@ -310,7 +310,7 @@ const drawLeaderboard = () => {
     .attr("height", 100) // Adjust height as needed
     .append("xhtml:div")
     .style("font-size", "20px") // Increase font size
-    .style("font-family", "'Poppins', sans-serif")
+    .style("font-family", "'Inter', sans-serif")
     .style("font-weight", "normal")
     .style("color", "#333")
     .style("text-align", "center")
@@ -356,15 +356,18 @@ onMounted(() => {
 /* Tooltip styling */
 .tooltip {
   font-size: 12px;
-  font-family: "Poppins", sans-serif;
+  font-family: "Inter", sans-serif;
   font-weight: normal;
   color: #333;
 }
-
+.dropdown-label {
+  font-family: Inter;
+  font-size: 14px;
+}
 /* Custom dropdown styling */
 .custom-dropdown {
-  margin-top: 16px;
   width: 200px;
+  font-family: Inter;
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 4px;

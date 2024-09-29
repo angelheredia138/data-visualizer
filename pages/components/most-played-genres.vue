@@ -1,7 +1,7 @@
 <template>
-  <div class="chart-container-transparent" style="flex: 1; padding: 10px">
+  <div class="chart-container-transparent">
     <!-- Chart container -->
-    <svg id="d3-genres-chart" style="width: 100%; height: 100%"></svg>
+    <svg id="d3-genres-chart"></svg>
 
     <!-- Time range selection dropdown using native select -->
     <div class="time-range-controls">
@@ -105,7 +105,7 @@ const drawGenresChart = (genres) => {
   const svg = d3
     .select("#d3-genres-chart")
     .attr("preserveAspectRatio", "xMinYMin meet")
-    .attr("viewBox", `0 0 ${1000} ${800}`) // Increased viewBox size for better scaling
+    .attr("viewBox", `0 0 ${1200} ${1000}`) // Increased viewBox size for better scaling
     .classed("svg-content-responsive", true)
     .style("background-color", "transparent");
 
@@ -118,8 +118,8 @@ const drawGenresChart = (genres) => {
     left: 150, // Increased left margin for better y-axis label display
   };
 
-  const width = 1000 - margin.left - margin.right; // Adjusted width
-  const height = 800 - margin.top - margin.bottom; // Adjusted height
+  const width = 1200 - margin.left - margin.right; // Adjusted width
+  const height = 1000 - margin.top - margin.bottom; // Adjusted height
 
   const x = d3
     .scaleBand()
@@ -277,7 +277,7 @@ const drawGenresChart = (genres) => {
     .attr("transform", "rotate(-45)")
     .style("text-anchor", "end")
     .style("font-size", "20px")
-    .style("font-family", "'Poppins', sans-serif")
+    .style("font-family", "'Inter', sans-serif")
     .style("font-weight", "bold");
 
   chart
@@ -285,7 +285,7 @@ const drawGenresChart = (genres) => {
     .call(d3.axisLeft(y).tickFormat(d3.format("d"))) // Ensure solid numbers on y-axis
     .selectAll("text")
     .style("font-size", "20px")
-    .style("font-family", "'Poppins', sans-serif")
+    .style("font-family", "'Inter', sans-serif")
     .style("font-weight", "bold");
 
   // Wrap text for x-axis labels
@@ -341,7 +341,7 @@ const drawGenresChart = (genres) => {
     .attr("transform", "rotate(-90)")
     .attr("text-anchor", "middle")
     .style("font-size", "20px")
-    .style("font-family", "'Poppins', sans-serif")
+    .style("font-family", "'Inter', sans-serif")
     .text("Artists")
     .style("font-weight", "bold");
 };
@@ -374,6 +374,7 @@ onMounted(() => {
   display: block; /* Display block to center using margin auto */
   margin: auto; /* Center the SVG horizontally */
 }
+
 .chart-container-transparent {
   flex: 1;
   padding: 10px;
@@ -384,15 +385,18 @@ onMounted(() => {
 /* Tooltip styling */
 .tooltip {
   font-size: 12px;
-  font-family: "Poppins", sans-serif;
+  font-family: "Inter", sans-serif;
   font-weight: normal;
   color: #333;
 }
-
+.dropdown-label {
+  font-family: Inter;
+  font-size: 14px;
+}
 /* Custom dropdown styling */
 .custom-dropdown {
-  margin-top: 16px;
   width: 200px;
+  font-family: Inter;
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 4px;

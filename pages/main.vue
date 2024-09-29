@@ -156,6 +156,7 @@ html {
   font-size: 1.3em;
   font-weight: bold;
   height: 80px;
+  font-family: Inter;
   width: 100%;
   max-width: 300px;
   text-transform: none;
