@@ -54,7 +54,6 @@ const fetchLeastGenres = async () => {
 
     // Update the local state with fetched data
     leastGenres.value = response.data.least_genres;
-    console.log("Fetched Least Listened Genres:", leastGenres.value);
   } catch (err) {
     error.value = "Error fetching least listened-to genres.";
     console.error(error.value, err);

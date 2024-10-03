@@ -19,19 +19,18 @@ import * as d3 from "d3";
 import { ref, onMounted } from "vue";
 import { useNuxtApp } from "#app";
 
-// Local state for tracks data, loading, and error
 const tracks = ref([]);
 const loading = ref(false);
 const error = ref(null);
-const isHovering = ref(false);
-const hoverTimeout = ref(null);
-const clickTimeout = ref(null);
 const lastPlayedTrack = ref(null);
+const colorMap = new Map(); // Store color for each track to persist between updates
+const svgRef = ref(null);
+let clockUpdateInterval;
 
 // Get the axios instance from the Nuxt app
 const { $axios } = useNuxtApp();
 
-// Function to fetch recently played tracks from the API
+// Fetch recently played tracks
 const fetchRecentlyPlayed = async () => {
   try {
     loading.value = true;
@@ -52,14 +51,14 @@ const fetchRecentlyPlayed = async () => {
     if (tracks.value.length > 0) {
       const track = tracks.value[0].track;
       const artistNames = track.artists.map((artist) => artist.name).join(", ");
-      lastPlayedTrack.value = `${track.name} by ${artistNames}`;
+      lastPlayedTrack.value = `${track.name} by ${artistNames} at ${new Date(
+        tracks.value[0].played_at
+      ).toLocaleTimeString()}`;
     } else {
       lastPlayedTrack.value = "No track played";
     }
 
     drawClockTimelineChart(tracks.value);
-    setInterval(updateClock, 1000); // Update clock hand and nodes every second
-    setInterval(fetchRecentlyPlayed, 60000); // Fetch new data every minute
   } catch (err) {
     error.value = "Error fetching data.";
     console.error(err);
@@ -68,7 +67,13 @@ const fetchRecentlyPlayed = async () => {
   }
 };
 
-// Draws the clock with data points and clock hand
+// Helper to get a random non-gray color from D3's color scheme
+const getRandomColor = () => {
+  const colors = d3.schemeCategory10.filter((color) => color !== "gray");
+  return colors[Math.floor(Math.random() * colors.length)];
+};
+
+// Draw the clock and nodes
 const drawClockTimelineChart = (tracks) => {
   const svg = d3
     .select("#d3-clock-timeline-chart")
@@ -87,7 +92,7 @@ const drawClockTimelineChart = (tracks) => {
     .append("g")
     .attr("transform", `translate(${width / 2},${height / 2})`);
 
-  // Draw clock face
+  // Draw the clock face
   clockGroup
     .append("circle")
     .attr("r", radius)
@@ -95,13 +100,13 @@ const drawClockTimelineChart = (tracks) => {
     .attr("stroke", "#000")
     .attr("stroke-width", 2);
 
-  // Add hour numbers with AM/PM labels
+  // Add hour numbers (time marks)
   const hourScale = d3
     .scaleLinear()
     .domain([0, 24])
     .range([0, 2 * Math.PI]);
-  const hours = d3.range(0, 24);
 
+  const hours = d3.range(0, 24);
   clockGroup
     .selectAll(".hour-label")
     .data(hours)
@@ -121,7 +126,15 @@ const drawClockTimelineChart = (tracks) => {
       return `${hour}${period}`;
     });
 
-  // Tooltip
+  // Add nodes dynamically with the original spacing logic
+  const now = new Date();
+  const todayStart = new Date(now.setHours(0, 0, 0, 0)); // Start of today
+
+  const nodes = clockGroup.selectAll(".node").data(tracks, (d) => d.track.id);
+
+  // Update nodes (delete old nodes, and add new ones)
+  nodes.exit().remove();
+
   const tooltip = d3
     .select("body")
     .append("div")
@@ -134,23 +147,11 @@ const drawClockTimelineChart = (tracks) => {
     .style("pointer-events", "none")
     .style("display", "none");
 
-  const now = new Date();
-  const todayStart = new Date(now.setHours(0, 0, 0, 0)); // Start of today
-
-  // Bind data and apply enter, update, exit logic for nodes
-  const nodes = clockGroup.selectAll(".node").data(tracks, (d) => d.track.id); // Use unique track ID as key
-
-  // Remove old nodes
-  nodes.exit().remove();
-  let isHovering = false;
-  let selectedNode = null;
-
-  // Add new nodes
   nodes
     .enter()
     .append("circle")
     .attr("class", "node")
-    .attr("r", 4)
+    .attr("r", 5)
     .attr("cx", (track) => {
       const date = new Date(track.played_at);
       const hours = date.getHours() + date.getMinutes() / 60;
@@ -165,23 +166,23 @@ const drawClockTimelineChart = (tracks) => {
     })
     .style("fill", (track) => {
       const trackDate = new Date(track.played_at);
-      const isYesterday = trackDate < todayStart;
-
-      // Nodes from yesterday are gray, today's nodes are colorful
-      return isYesterday
-        ? "gray"
-        : d3.schemeCategory10[tracks.indexOf(track) % 10]; // Colorful if today
+      if (trackDate < todayStart) {
+        return "gray"; // Old nodes are always gray
+      } else {
+        // Preserve color for new nodes
+        if (!colorMap.has(track.track.id)) {
+          colorMap.set(track.track.id, getRandomColor());
+        }
+        return colorMap.get(track.track.id); // Assign color from the map
+      }
     })
-    .style("opacity", 0.7)
+    .style("opacity", 0.8)
     .attr("data-time", (track) => new Date(track.played_at).getTime())
-    .merge(nodes) // Merge new and existing nodes
     .on("mouseover", function (event, track) {
-      isHovering = true;
       d3.select(this).transition().attr("r", 6);
       const date = new Date(track.played_at);
       const formattedTime = formatTime(date);
 
-      // Limit the length of the song title and artist list for the tooltip
       const maxLength = 30;
       const trackName =
         track.track.name.length > maxLength
@@ -196,7 +197,6 @@ const drawClockTimelineChart = (tracks) => {
           ? `${artistNames.substring(0, maxLength)}...`
           : artistNames;
 
-      // Correct check for whether it's yesterday or today
       const isYesterday = new Date(track.played_at) < todayStart;
 
       tooltip
@@ -207,9 +207,6 @@ const drawClockTimelineChart = (tracks) => {
           }`
         );
       d3.select(this).style("stroke", "#000").style("stroke-width", "2px");
-      setTimeout(() => {
-        tooltip.style("display", "none"); // Hide after 500ms
-      }, 3000);
     })
     .on("mousemove", (event) => {
       tooltip
@@ -217,72 +214,16 @@ const drawClockTimelineChart = (tracks) => {
         .style("left", event.pageX + 10 + "px");
     })
     .on("mouseout", function () {
-      isHovering = false;
       d3.select(this).transition().attr("r", 4);
       tooltip.style("display", "none");
       d3.select(this).style("stroke", "none");
-    })
-    .on("click", function (event, track) {
-      // On hover-capable devices, block click if the user is hovering
-      if (isHovering && window.matchMedia("(hover: hover)").matches) {
-        return;
-      }
-
-      const node = d3.select(this);
-      const isHighlighted = node.classed("highlighted");
-
-      // Deselect the previously selected node if it’s not the current one
-      if (selectedNode && selectedNode !== node) {
-        selectedNode.classed("highlighted", false).style("fill", "steelblue");
-        tooltip.style("display", "none");
-      }
-
-      // Toggle the selection of the clicked node
-      if (isHighlighted) {
-        // If the node is already highlighted, unselect it
-        node.classed("highlighted", false).style("fill", "steelblue");
-        tooltip.style("display", "none");
-        selectedNode = null;
-      } else {
-        // If the node is not highlighted, select it
-        node.classed("highlighted", true).style("fill", "darkblue");
-
-        // Show tooltip when clicked (even on touch devices)
-        const date = new Date(track.played_at);
-        const formattedTime = formatTime(date);
-
-        const trackName =
-          track.track.name.length > maxLength
-            ? `${track.track.name.substring(0, maxLength)}...`
-            : track.track.name;
-
-        const artistNames = track.track.artists
-          .map((artist) => artist.name)
-          .join(", ");
-        const truncatedArtists =
-          artistNames.length > maxLength
-            ? `${artistNames.substring(0, maxLength)}...`
-            : artistNames;
-
-        tooltip
-          .style("display", "block")
-          .html(
-            `<strong>${trackName}</strong><br/>Played at: ${formattedTime}<br/>Artist: ${truncatedArtists}<br/>${
-              date < todayStart ? "Yesterday" : "Today"
-            }`
-          )
-          .style("top", event.pageY - 10 + "px")
-          .style("left", event.pageX + 10 + "px");
-
-        selectedNode = node;
-      }
     });
 
-  // Draw clock hand with arrow
+  // Draw clock hand
   drawClockHand(clockGroup, radius);
 };
 
-// Function to draw the clock hand with an arrow tip
+// Draw clock hand with arrow
 const drawClockHand = (clockGroup, radius) => {
   const now = new Date();
   const currentHours = now.getHours() + now.getMinutes() / 60;
@@ -292,7 +233,6 @@ const drawClockHand = (clockGroup, radius) => {
   const arrowLength = 15;
   const arrowWidth = 3;
 
-  // Draw the clock hand
   clockGroup
     .append("line")
     .attr("class", "clock-hand")
@@ -303,75 +243,43 @@ const drawClockHand = (clockGroup, radius) => {
     .attr("stroke", "red")
     .attr("stroke-width", 4);
 
-  // Draw the arrow tip
+  // Draw arrow tip for the clock hand
   clockGroup
     .append("polygon")
     .attr(
       "points",
       `
-          ${Math.cos(hourAngle - Math.PI / 2) * (handLength + arrowLength)},${
+        ${Math.cos(hourAngle - Math.PI / 2) * (handLength + arrowLength)},${
         Math.sin(hourAngle - Math.PI / 2) * (handLength + arrowLength)
       }
-          ${
-            Math.cos(hourAngle - Math.PI / 2 + Math.PI / 24) *
-            (handLength - arrowWidth)
-          },${
-        Math.sin(hourAngle - Math.PI / 2 + Math.PI / 24) *
-        (handLength - arrowWidth)
+        ${Math.cos(hourAngle - Math.PI / 2 + Math.PI / 24) * handLength},${
+        Math.sin(hourAngle - Math.PI / 2 + Math.PI / 24) * handLength
       }
-          ${
-            Math.cos(hourAngle - Math.PI / 2 - Math.PI / 24) *
-            (handLength - arrowWidth)
-          },${
-        Math.sin(hourAngle - Math.PI / 2 - Math.PI / 24) *
-        (handLength - arrowWidth)
+        ${Math.cos(hourAngle - Math.PI / 2 - Math.PI / 24) * handLength},${
+        Math.sin(hourAngle - Math.PI / 2 - Math.PI / 24) * handLength
       }
-        `
+      `
     )
     .attr("fill", "red");
 };
 
-// Updates the clock hand and dynamically adjusts nodes
-const updateClock = () => {
-  const svg = d3.select("#d3-clock-timeline-chart");
-  const clockGroup = svg.select("g");
-
-  // Remove old clock hand
-  clockGroup.selectAll(".clock-hand").remove();
-  clockGroup.selectAll("polygon").remove(); // Remove the arrow tip
-
-  // Redraw clock hand
-  drawClockHand(clockGroup, Math.min(400, 500) / 2 - 20);
-
-  const now = new Date();
-
-  // Hide any visible tooltips when the clock updates
-  d3.select(".tooltip").style("display", "none");
-
-  // Update nodes based on their age
-  clockGroup.selectAll(".node").each(function () {
-    const node = d3.select(this);
-    const trackDate = new Date(parseInt(node.attr("data-time")));
-
-    const timeDifference = now - trackDate;
-    const timeDifferenceInHours = timeDifference / (1000 * 60 * 60);
-
-    // If the node is older than 24 hours, remove it
-    if (timeDifferenceInHours >= 24) {
-      node.remove();
-    }
-  });
-
-  // Fetch and add new tracks dynamically
-  const newTracks = tracks.value.filter((track) => {
-    const trackDate = new Date(track.played_at);
-    return trackDate >= now.setHours(0, 0, 0, 0); // Only today's tracks
-  });
-
-  drawClockTimelineChart(newTracks); // Only re-draw new tracks from today
+// Updates chart and clock hand every minute
+const updateChart = () => {
+  fetchRecentlyPlayed(); // Fetch new data every minute
+  drawClockTimelineChart(tracks.value); // Redraw the chart every minute
 };
 
-// Function to format the time in AM/PM
+// Fetch data and draw chart on component mount
+onMounted(() => {
+  fetchRecentlyPlayed();
+  clockUpdateInterval = setInterval(updateChart, 60000); // Update every minute
+});
+
+onUnmounted(() => {
+  clearInterval(clockUpdateInterval); // Clear interval when the component is unmounted
+});
+
+// Helper to format the time
 const formatTime = (date) => {
   const hours = date.getHours();
   const minutes = date.getMinutes();
@@ -380,11 +288,6 @@ const formatTime = (date) => {
   const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes;
   return `${formattedHours}:${formattedMinutes} ${ampm}`;
 };
-
-// Fetch data and draw chart on component mount
-onMounted(() => {
-  fetchRecentlyPlayed();
-});
 </script>
 
 <style scoped>
@@ -411,9 +314,14 @@ onMounted(() => {
   font-weight: bold;
   margin-top: 10px;
 }
+
 .last-played {
   font-weight: bold;
   text-align: center;
   margin-bottom: 10px;
+}
+
+.tooltip {
+  pointer-events: none;
 }
 </style>

@@ -16,7 +16,7 @@
     <div>
       <!-- Fixed Title and Back Button -->
       <div class="header-container">
-        <h1 class="page-title">Listening History</h1>
+        <h1 class="page-title">Genre Pie Chart and Word Cloud!</h1>
 
         <v-btn color="primary" class="back-button" @click="goBack">
           Back to Home
@@ -25,32 +25,37 @@
 
       <!-- Top Section for Chart Explanations -->
       <div class="explanation-section" style="max-width: 800px">
-        <h2 class="subtitle">Chart Explanation</h2>
+        <h2 class="subtitle">Chart Explanations</h2>
         <p class="explanation-text">
-          <strong>Recently Played Timeline:</strong> This chart displays your
-          recently played tracks on a clock timeline, allowing you to see your
-          listening patterns and identify the most recent track played. Each dot
-          on the timeline represents a track, and the position of the dot
-          corresponds to the time you listened to the track.
+          <strong>Genre Word Cloud:</strong> Visualizes the genres you have
+          listened to in a word cloud format. The size of each genre name is
+          proportional to the number of listens. Hover or tap on a genre name to
+          see its full name if it is truncated.
+        </p>
+        <p class="explanation-text">
+          <strong>Genre Distribution Pie Chart:</strong> Displays the
+          distribution of your favorite genres in a pie chart format. Hover or
+          tap on each slice to see more details. Genres with only one artist
+          listen are grouped together and listed below the chart.
         </p>
         <p class="explanation-text">These charts are created using D3.js.</p>
       </div>
 
       <!-- Graphs Section -->
       <div class="graphs-container">
-        <!-- Timeline Chart -->
+        <!-- Most Played Genres -->
         <div class="graph-item">
-          <h3 class="graph-title">Timeline Chart</h3>
+          <h3 class="graph-title">Genre Pie Chart</h3>
           <div class="graph-content">
-            <Timeline :timeRange="localTimeRange" />
-            <p class="explanation-text">
-              This clock actively updates as the day goes on, displaying what
-              song you were listening to at what time.
-            </p>
-            <p class="explanation-text">
-              Gray data points are from the day before, and the colored data
-              points are from today.
-            </p>
+            <PieChart />
+          </div>
+        </div>
+
+        <!-- Artist Leaderboard -->
+        <div class="graph-item">
+          <h3 class="graph-title">Genre Word Cloud</h3>
+          <div class="graph-content">
+            <WordCloud />
           </div>
         </div>
       </div>
@@ -61,7 +66,8 @@
 <script setup>
 import { ref, reactive, onMounted, onBeforeUnmount } from "vue";
 import { useRouter } from "vue-router";
-import Timeline from "~/pages/components/timeline.vue"; // Import the Scatter Plot component
+import PieChart from "~/pages/components/pie-chart.vue";
+import WordCloud from "~/pages/components/word-cloud.vue";
 
 // State for loading overlay
 const showLoadingOverlay = ref(true);
