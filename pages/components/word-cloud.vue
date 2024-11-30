@@ -99,14 +99,6 @@ const drawWordCloud = (genresData) => {
     rotateRatio: 0.0, // Set to 0 to prevent rotation
     shuffle: true,
     drawOutOfBound: false,
-    click: (item, dimension, event) => {
-      // Implement custom click behavior if needed
-      alert(`Genre: ${item[0]}, Count: ${item[1]}`);
-    },
-    // Optional hover effect
-    hover: (item, dimension, event) => {
-      // Implement custom hover behavior if needed
-    },
   };
 
   // Generate the word cloud
@@ -147,8 +139,8 @@ onBeforeUnmount(() => {
   flex: 1;
   padding: 10px;
   border-radius: 10px;
-  width: 100%;
-  height: 100%; /* Allow it to fill the parent container's height */
+  width: 95%;
+  height: 90%; /* Allow it to fill the parent container's height */
   overflow: hidden;
   position: relative;
   font-family: "Inter", sans-serif; /* Ensure the font is applied */
