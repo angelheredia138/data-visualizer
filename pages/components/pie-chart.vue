@@ -63,9 +63,8 @@ const drawPieChart = (genresData) => {
   // Get the container's width and height
   const width = svg.node().clientWidth;
   const height = svg.node().clientHeight;
-  const radius = Math.min(width, height) / 2; // Slightly smaller to fit padding
+  const radius = Math.min(width, height) / 2;
 
-  // Set up the SVG attributes
   svg
     .attr("viewBox", `0 0 ${width} ${height}`)
     .attr("preserveAspectRatio", "xMidYMid meet")
@@ -78,22 +77,33 @@ const drawPieChart = (genresData) => {
 
   const color = d3.scaleOrdinal(d3.schemeCategory10);
 
-  // Sort genres by count to show the most populated genres
   const sortedGenres = genresData
     .sort((a, b) => b.count - a.count)
-    .slice(0, 10); // Limit to top 10 genres
+    .slice(0, 10);
 
   const pie = d3.pie().value((d) => d.count);
   const data_ready = pie(sortedGenres);
 
   const arc = d3.arc().innerRadius(0).outerRadius(radius);
-
   const arcOver = d3
     .arc()
     .innerRadius(0)
     .outerRadius(radius + 10);
 
-  // Build the pie chart
+  const tooltip = d3
+    .select("body")
+    .append("div")
+    .attr("class", "tooltip")
+    .style("position", "absolute")
+    .style("background", "#fff")
+    .style("border", "1px solid #ccc")
+    .style("padding", "10px")
+    .style("border-radius", "5px")
+    .style("pointer-events", "none")
+    .style("display", "none");
+
+  const isHoverCapable = window.matchMedia("(hover: hover)").matches;
+
   g.selectAll("path")
     .data(data_ready)
     .enter()
@@ -103,19 +113,56 @@ const drawPieChart = (genresData) => {
     .attr("stroke", "white")
     .style("stroke-width", "2px")
     .on("mouseover", function (event, d) {
-      d3.select(this).transition().duration(200).attr("d", arcOver);
-      // Show tooltip or perform other actions
+      if (isHoverCapable) {
+        d3.select(this).transition().duration(200).attr("d", arcOver);
+        tooltip
+          .style("display", "block")
+          .html(`${d.data.genre} - Artists: ${d.data.count}`)
+          .style("top", `${event.pageY - 10}px`)
+          .style("left", `${event.pageX + 10}px`);
+      }
     })
-    .on("mouseout", function (event, d) {
-      d3.select(this).transition().duration(200).attr("d", arc);
-      // Hide tooltip or perform other actions
+    .on("mousemove", function (event) {
+      if (isHoverCapable) {
+        tooltip
+          .style("top", `${event.pageY - 10}px`)
+          .style("left", `${event.pageX + 10}px`);
+      }
+    })
+    .on("mouseout", function () {
+      if (isHoverCapable) {
+        d3.select(this).transition().duration(200).attr("d", arc);
+        tooltip.style("display", "none");
+      }
     })
     .on("click", function (event, d) {
-      selectedSlice.value = d.data.genre;
-      genreInfo.value = `${d.data.genre} - Artists: ${d.data.count}`;
-    });
+      if (!isHoverCapable) {
+        const isSelected = d3.select(this).classed("selected");
 
-  // Add labels
+        // Deselect if already selected
+        if (isSelected) {
+          d3.select(this)
+            .classed("selected", false)
+            .transition()
+            .duration(200)
+            .attr("d", arc); // Reset to original size
+          tooltip.style("display", "none"); // Hide tooltip
+        } else {
+          // Select and show tooltip
+          d3.selectAll("path").classed("selected", false); // Deselect others
+          d3.select(this)
+            .classed("selected", true)
+            .transition()
+            .duration(200)
+            .attr("d", arcOver); // Highlight
+          tooltip
+            .style("display", "block")
+            .html(`${d.data.genre} - Artists: ${d.data.count}`)
+            .style("top", `${event.pageY - 10}px`)
+            .style("left", `${event.pageX + 10}px`);
+        }
+      }
+    });
   g.selectAll("text")
     .data(data_ready)
     .enter()
