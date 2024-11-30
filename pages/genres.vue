@@ -43,7 +43,7 @@
 
       <!-- Graphs Section -->
       <div class="graphs-container">
-        <!-- Most Played Genres -->
+        <!-- Genre Pie Chart -->
         <div class="graph-item">
           <h3 class="graph-title">Genre Pie Chart</h3>
           <div class="graph-content">
@@ -51,7 +51,7 @@
           </div>
         </div>
 
-        <!-- Artist Leaderboard -->
+        <!-- Genre Word Cloud -->
         <div class="graph-item">
           <h3 class="graph-title">Genre Word Cloud</h3>
           <div class="graph-content">
@@ -78,9 +78,6 @@ const screenSize = reactive({
   height: window.innerHeight,
   isSmall: window.innerWidth < 768,
 });
-
-// Time range selection
-const localTimeRange = ref("medium_term");
 
 // Function to update screen size state
 const updateScreenSize = () => {
@@ -140,7 +137,7 @@ body,
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  padding: 20px;
+  padding: 30px;
   box-sizing: border-box;
   overflow-x: hidden;
 }
@@ -167,7 +164,7 @@ body,
 }
 
 .loading-message {
-  font-size: 1.2em; /* Smaller font size */
+  font-size: 1.5em;
   font-weight: bold;
   color: white;
 }
@@ -176,24 +173,24 @@ body,
 .header-container {
   width: 100%;
   text-align: center;
-  margin-bottom: 20px; /* Reduce margin */
+  margin-bottom: 30px;
   flex-shrink: 0;
 }
 
 .page-title {
   color: white;
-  font-size: 2em; /* Reduce font size */
+  font-size: 2.5em;
   font-weight: 700;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
 }
 
 .back-button {
   background-color: #e53e3e !important;
   color: white;
   text-transform: none;
-  font-size: 1em; /* Reduce button size */
-  width: 120px; /* Smaller width */
-  height: 40px;
+  font-size: 1.2em;
+  width: 150px;
+  height: 42px;
 }
 
 .back-button:hover {
@@ -203,12 +200,12 @@ body,
 /* Explanation Section */
 .explanation-section {
   background-color: rgba(255, 255, 255, 0.85);
-  padding: 15px; /* Reduce padding */
+  padding: 20px;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  margin-bottom: 15px; /* Reduce margin */
+  margin-bottom: 20px;
   width: 100%;
-  max-width: 700px; /* Reduce width */
+  max-width: 800px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -219,22 +216,21 @@ body,
 }
 
 .subtitle {
-  font-size: 1.2em; /* Reduce font size */
+  font-size: 1.4em;
   text-align: center;
 }
 
 .explanation-text {
-  font-size: 0.9em; /* Reduce font size */
-  margin-bottom: 8px; /* Adjust margin */
+  font-size: 1em;
+  margin-bottom: 10px;
 }
 
 /* Graphs Container */
 .graphs-container {
-  margin-bottom: 15px; /* Reduce margin */
   display: flex;
   flex-direction: column;
   width: 100%;
-  align-items: center; /* Center graphs on mobile */
+  align-items: center; /* Center charts on smaller screens */
 }
 
 @media (min-width: 769px) {
@@ -252,8 +248,8 @@ body,
 /* Graph Item */
 .graph-item {
   width: 100%;
-  max-width: 500px; /* Limit the width on mobile */
-  margin: 15px 0; /* Reduce margin */
+  max-width: 600px; /* Limit the width on mobile */
+  margin: 20px 0;
   background-color: rgba(
     255,
     255,
@@ -261,28 +257,28 @@ body,
     0.85
   ); /* Slightly transparent white background */
   border-radius: 8px;
-  padding: 15px; /* Reduce padding */
+  padding: 20px;
   box-sizing: border-box;
 }
 
 @media (min-width: 769px) {
   .graph-item {
-    flex: 0 0 35%; /* Reduce size */
-    margin: 0 15px; /* Reduce margin */
+    flex: 0 0 37.5%; /* Ensure both graphs take up 37.5% */
+    margin: 20px 20px; /* Space between the graphs */
     max-width: none; /* Remove max-width constraint */
   }
 }
 
 .graph-title {
-  font-size: 1.5em; /* Reduce font size */
+  font-size: 1.8em;
   color: black;
   text-align: center;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
 }
 
 .graph-content {
   width: 100%;
-  height: 100%;
+  height: 400px;
 }
 
 /* Ensure the graph components fill their containers */
@@ -293,15 +289,18 @@ body,
 
 /* Responsive Adjustments */
 @media (max-width: 768px) {
+  /* Reduce the font size of the page title */
   .page-title {
     font-size: 1.2em;
   }
 
+  /* Adjust the header container */
   .header-container {
     margin-bottom: 10px;
     padding: 0 15px;
   }
 
+  /* Explanation Section */
   .explanation-section {
     width: 85%;
     padding: 10px;
@@ -317,13 +316,18 @@ body,
     margin-bottom: 8px;
   }
 
+  /* Graph Item */
   .graph-item {
-    max-width: 80%;
+    max-width: 100%;
     padding: 10px;
   }
 
   .graph-content {
-    height: 300px; /* Reduce height of the chart */
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: visible;
   }
 
   .graph-title {

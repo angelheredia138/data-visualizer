@@ -7,10 +7,9 @@
 </template>
 
 <script setup>
-import * as d3 from "d3";
-import cloud from "d3-cloud";
 import { ref, watch, onMounted, onBeforeUnmount } from "vue";
 import { useNuxtApp } from "#app";
+import WordCloud from "wordcloud"; // Import wordcloud2.js
 
 // Local state for genres data, loading, and error state
 const genres = ref([]);
@@ -18,9 +17,6 @@ const loading = ref(false);
 const error = ref(null);
 
 const wordCloudRef = ref(null);
-let clickTimeout = null;
-let isHovering = false;
-
 const { $axios } = useNuxtApp();
 
 // Function to fetch genres data
@@ -51,91 +47,70 @@ const fetchGenres = async () => {
 // Function to draw the word cloud
 const drawWordCloud = (genresData) => {
   const container = wordCloudRef.value;
-  const width = container.clientWidth;
-  const height = container.clientHeight;
 
-  d3.select(container).selectAll("svg").remove(); // Clear previous SVG
+  // Clear previous content
+  container.innerHTML = "";
 
-  const svg = d3
-    .select(container)
-    .append("svg")
-    .attr("preserveAspectRatio", "xMinYMin meet")
-    .attr("viewBox", `0 0 800 600`)
-    .classed("svg-content-responsive", true)
-    .style("background-color", "transparent");
+  // Get the container's width and height
+  const width = container.offsetWidth;
+  const height = container.offsetHeight;
+  // Limit the number of genres displayed
+  const topGenres = genresData.sort((a, b) => b.count - a.count).slice(0, 100); // Adjust the number as needed
 
-  const maxCount = d3.max(genresData, (d) => d.count);
-  const fontSizeScale = d3.scaleSqrt().domain([0, maxCount]).range([10, 40]);
+  // Prepare the word list
+  const wordList = topGenres.map((d) => [d.genre, d.count]);
 
-  const layout = cloud()
-    .size([800, 600])
-    .words(
-      genresData.map((d) => ({
-        text: d.genre,
-        displayText:
-          d.genre.length > 15 ? `${d.genre.slice(0, 15)}...` : d.genre,
-        size: fontSizeScale(d.count),
-      }))
-    )
-    .padding(5)
-    .rotate(() => (Math.random() > 0.5 ? 0 : 90))
-    .fontSize((d) => d.size)
-    .on("end", draw);
+  // Determine the maximum and minimum counts
+  const counts = topGenres.map((d) => d.count);
+  const maxCount = Math.max(...counts);
+  const minCount = Math.min(...counts);
 
-  layout.start();
+  // Set desired minimum and maximum font sizes
+  const minFontSize = 16; // Increase this value to make the smallest words larger
+  const maxFontSize = 60; // Keep this as is
 
-  function draw(words) {
-    const colorScale = d3.scaleOrdinal(d3.schemeCategory10);
+  // Configure word cloud options
+  const options = {
+    list: wordList,
+    gridSize: Math.round((16 * width) / 1024),
+    weightFactor: (size) => {
+      // Adjust the weightFactor to scale with container size
+      const factor = (size - minCount) / (maxCount - minCount);
+      return factor * (height / 10) + minFontSize;
+    },
+    fontFamily: "Inter",
+    color: () => {
+      // Random colors
+      const colors = [
+        "#1f77b4",
+        "#ff7f0e",
+        "#2ca02c",
+        "#d62728",
+        "#9467bd",
+        "#8c564b",
+        "#e377c2",
+        "#7f7f7f",
+        "#bcbd22",
+        "#17becf",
+      ];
+      return colors[Math.floor(Math.random() * colors.length)];
+    },
+    backgroundColor: "transparent",
+    rotateRatio: 0.0, // Set to 0 to prevent rotation
+    shuffle: true,
+    drawOutOfBound: false,
+    click: (item, dimension, event) => {
+      // Implement custom click behavior if needed
+      alert(`Genre: ${item[0]}, Count: ${item[1]}`);
+    },
+    // Optional hover effect
+    hover: (item, dimension, event) => {
+      // Implement custom hover behavior if needed
+    },
+  };
 
-    const tooltip = d3
-      .select("body")
-      .append("div")
-      .attr("class", "tooltip")
-      .style("position", "absolute")
-      .style("background", "#fff")
-      .style("border", "1px solid #ccc")
-      .style("padding", "10px")
-      .style("border-radius", "5px")
-      .style("pointer-events", "none")
-      .style("display", "none");
-
-    svg
-      .append("g")
-      .attr("transform", `translate(400,300)`)
-      .selectAll("text")
-      .data(words)
-      .enter()
-      .append("text")
-      .style("font-size", (d) => `${d.size}px`)
-      .style("font-family", "Poppins")
-      .style("fill", (d) => colorScale(d.text))
-      .style("font-weight", "bold")
-      .style("stroke", "white")
-      .style("stroke-width", 0.5)
-      .style("stroke-linejoin", "round")
-      .attr("text-anchor", "middle")
-      .attr("transform", (d) => `translate(${[d.x, d.y]})rotate(${d.rotate})`)
-      .text((d) => d.displayText)
-      .on("mouseover", function (event, d) {
-        isHovering = true;
-        d3.select(this).style("cursor", "pointer");
-        d3.select(this).append("title").text(d.text); // Show full name on hover
-      })
-      .on("click", function (event, d) {
-        if (isHovering) return;
-
-        tooltip
-          .style("display", "block")
-          .html(`<strong>${d.text}</strong><br/>`)
-          .style("top", `${event.pageY}px`)
-          .style("left", `${event.pageX}px`);
-
-        clearTimeout(clickTimeout);
-        clickTimeout = setTimeout(() => {
-          tooltip.style("display", "none");
-        }, 1000); // Hide the tooltip after 1 second
-      });
-  }
+  // Generate the word cloud
+  WordCloud(container, options);
 };
 
 // Watch for changes in the genres and redraw the word cloud
@@ -146,19 +121,24 @@ watch(genres, (newGenres) => {
 });
 
 // Resize listener to handle window resizing and redraw the word cloud
-const handleResize = () => {
-  if (genres.value.length > 0) {
-    drawWordCloud(genres.value);
-  }
-};
+let resizeObserver;
 
 onMounted(() => {
   fetchGenres();
-  window.addEventListener("resize", handleResize); // Listen for resize events
+
+  // Observe the container size changes
+  resizeObserver = new ResizeObserver(() => {
+    if (genres.value.length > 0) {
+      drawWordCloud(genres.value);
+    }
+  });
+  resizeObserver.observe(wordCloudRef.value);
 });
 
 onBeforeUnmount(() => {
-  window.removeEventListener("resize", handleResize); // Clean up resize listener
+  if (resizeObserver) {
+    resizeObserver.disconnect();
+  }
 });
 </script>
 
@@ -168,15 +148,10 @@ onBeforeUnmount(() => {
   padding: 10px;
   border-radius: 10px;
   width: 100%;
-  height: 100%;
+  height: 100%; /* Allow it to fill the parent container's height */
   overflow: hidden;
-}
-
-.tooltip {
-  font-size: 12px;
-  font-family: "Inter", sans-serif;
-  font-weight: normal;
-  color: #333;
+  position: relative;
+  font-family: "Inter", sans-serif; /* Ensure the font is applied */
 }
 
 .loading-spinner {

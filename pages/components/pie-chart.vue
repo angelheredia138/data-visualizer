@@ -1,5 +1,5 @@
 <template>
-  <div class="chart-container-transparent">
+  <div class="chart-container">
     <div v-if="loading" class="loading-spinner">Loading...</div>
     <div v-if="error" class="error-message">{{ error }}</div>
     <div v-else>
@@ -11,25 +11,22 @@
 
 <script setup>
 import * as d3 from "d3";
-import { ref, watch, onMounted } from "vue";
+import { ref, onMounted, onBeforeUnmount } from "vue";
 import { useNuxtApp } from "#app";
 
-// Local state for genres data, loading, and error state
+// State for genre data, loading, error, and pie chart references
 const genres = ref([]);
-const oneCountGenres = ref([]);
 const selectedSlice = ref(null);
 const genreInfo = ref("");
 const loading = ref(false);
 const error = ref(null);
 
 const pieChartRef = ref(null);
-let hoverTimeout = null;
-let clickTimeout = null;
-let isHovering = false;
+let resizeObserver;
 
 const { $axios } = useNuxtApp();
 
-// Function to fetch genres
+// Function to fetch genres from the API
 const fetchGenres = async () => {
   try {
     loading.value = true;
@@ -37,7 +34,7 @@ const fetchGenres = async () => {
 
     const token = localStorage.getItem("spotify_access_token");
     if (!token) {
-      error.value = "No Spotify access token found in localStorage.";
+      error.value = "No Spotify token provided.";
       loading.value = false;
       return;
     }
@@ -46,7 +43,6 @@ const fetchGenres = async () => {
     const response = await $axios.get(`/genres/`, { headers });
 
     genres.value = response.data.genres || [];
-    oneCountGenres.value = genres.value.filter((d) => d.count === 1);
 
     drawPieChart(genres.value);
   } catch (err) {
@@ -57,130 +53,112 @@ const fetchGenres = async () => {
   }
 };
 
-// Watch for changes in the `genres` and redraw the pie chart
-watch(genres, (newGenres) => {
-  if (newGenres.length > 0) {
-    drawPieChart(newGenres);
-  }
-});
-
 // Function to draw the pie chart
 const drawPieChart = (genresData) => {
-  const container = pieChartRef.value;
-  const width = container.clientWidth;
-  const height = container.clientHeight;
-  const radius = Math.min(width, height) / 2;
+  const svg = d3.select(pieChartRef.value);
 
-  // Clear the previous SVG
-  d3.select(container).selectAll("svg").remove();
+  // Clear the previous SVG content
+  svg.selectAll("*").remove();
 
-  const svg = d3
-    .select(container)
-    .append("svg")
-    .attr("width", width)
-    .attr("height", height)
-    .style("background-color", "transparent");
+  // Get the container's width and height
+  const width = svg.node().clientWidth;
+  const height = svg.node().clientHeight;
+  const radius = Math.min(width, height) / 2; // Slightly smaller to fit padding
 
-  const color = d3.scaleOrdinal(d3.schemeCategory10);
-  const pie = d3.pie().value((d) => d.count);
-  const arc = d3
-    .arc()
-    .outerRadius(radius - 10)
-    .innerRadius(0);
-
-  const otherGenres = genresData.filter((d) => d.count > 1);
-  const data = [...otherGenres, { genre: "Other", count: 1 }];
+  // Set up the SVG attributes
+  svg
+    .attr("viewBox", `0 0 ${width} ${height}`)
+    .attr("preserveAspectRatio", "xMidYMid meet")
+    .style("width", "100%")
+    .style("height", "100%");
 
   const g = svg
     .append("g")
     .attr("transform", `translate(${width / 2},${height / 2})`);
 
-  const tooltip = d3
-    .select("body")
-    .append("div")
-    .attr("class", "tooltip")
-    .style("position", "absolute")
-    .style("background", "#fff")
-    .style("border", "1px solid #ccc")
-    .style("padding", "10px")
-    .style("border-radius", "5px")
-    .style("pointer-events", "none")
-    .style("display", "none");
+  const color = d3.scaleOrdinal(d3.schemeCategory10);
 
-  const path = g
-    .selectAll("path")
-    .data(pie(data))
+  // Sort genres by count to show the most populated genres
+  const sortedGenres = genresData
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10); // Limit to top 10 genres
+
+  const pie = d3.pie().value((d) => d.count);
+  const data_ready = pie(sortedGenres);
+
+  const arc = d3.arc().innerRadius(0).outerRadius(radius);
+
+  const arcOver = d3
+    .arc()
+    .innerRadius(0)
+    .outerRadius(radius + 10);
+
+  // Build the pie chart
+  g.selectAll("path")
+    .data(data_ready)
     .enter()
     .append("path")
     .attr("d", arc)
-    .style("fill", (d) => color(d.data.genre))
+    .attr("fill", (d) => color(d.data.genre))
+    .attr("stroke", "white")
+    .style("stroke-width", "2px")
     .on("mouseover", function (event, d) {
-      if (selectedSlice.value !== d.data.genre) {
-        isHovering = true;
-        d3.select(this).transition().duration(200).attr("d", arc);
-
-        clearTimeout(hoverTimeout);
-        hoverTimeout = setTimeout(() => {
-          if (selectedSlice.value !== d.data.genre) {
-            d3.select(this.parentNode)
-              .selectAll("text")
-              .filter((textData) => textData.data.genre === d.data.genre)
-              .transition()
-              .duration(200)
-              .style("font-size", "1px")
-              .style("opacity", 0.2);
-          }
-        }, 1000);
-
-        tooltip
-          .style("display", "block")
-          .html(
-            d.data.genre === "Other"
-              ? "Other genres, see below"
-              : `${d.data.genre} - Artists: ${d.data.count}`
-          );
-      }
-    })
-    .on("mousemove", function (event) {
-      tooltip
-        .style("top", event.pageY - 10 + "px")
-        .style("left", event.pageX + 10 + "px");
+      d3.select(this).transition().duration(200).attr("d", arcOver);
+      // Show tooltip or perform other actions
     })
     .on("mouseout", function (event, d) {
-      if (selectedSlice.value !== d.data.genre) {
-        isHovering = false;
-        tooltip.style("display", "none");
-      }
+      d3.select(this).transition().duration(200).attr("d", arc);
+      // Hide tooltip or perform other actions
     })
     .on("click", function (event, d) {
-      if (isHovering) return;
-
       selectedSlice.value = d.data.genre;
-
-      let infoContent =
-        d.data.genre === "Other"
-          ? "Other genres, see below"
-          : `${d.data.genre} - Artists: ${d.data.count}`;
-      genreInfo.value = infoContent;
-
-      clearTimeout(clickTimeout);
-      clickTimeout = setTimeout(() => {
-        genreInfo.value = "";
-        selectedSlice.value = null;
-      }, 1000);
+      genreInfo.value = `${d.data.genre} - Artists: ${d.data.count}`;
     });
+
+  // Add labels
+  g.selectAll("text")
+    .data(data_ready)
+    .enter()
+    .append("text")
+    .text((d) => d.data.genre)
+    .attr("transform", (d) => `translate(${arc.centroid(d)})`)
+    .style("text-anchor", "middle")
+    .style("font-size", "14px")
+    .style("font-family", "Inter")
+    .style("fill", "#000")
+    .style("font-weight", "bold");
 };
 
-// Fetch genres on component mount
+// Function to handle resize events
+const handleResize = () => {
+  if (genres.value.length > 0) {
+    drawPieChart(genres.value);
+  }
+};
+
+// Fetch genres and draw the pie chart when the component is mounted
 onMounted(() => {
   fetchGenres();
+
+  // Observe the container size changes
+  resizeObserver = new ResizeObserver(handleResize);
+  resizeObserver.observe(pieChartRef.value);
+});
+
+onBeforeUnmount(() => {
+  if (resizeObserver) {
+    resizeObserver.disconnect();
+  }
 });
 </script>
 
 <style scoped>
-.chart-container-transparent {
+.chart-container {
+  width: 100%;
+  align-content: center;
+  justify-content: center;
   flex: 1;
-  padding: 10px;
+  display: flex;
 }
 
 .genre-info {
@@ -210,5 +188,10 @@ onMounted(() => {
   border-radius: 5px;
   pointer-events: none;
   display: none;
+}
+
+#d3-pie-chart {
+  width: 100%;
+  height: 100%; /* Ensure the SVG fills its container */
 }
 </style>
