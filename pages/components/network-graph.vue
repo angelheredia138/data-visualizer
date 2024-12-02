@@ -22,24 +22,47 @@
     ></svg>
 
     <!-- Connections Overview -->
-    <div v-if="isLoaded && connections.length > 0">
-      <h4 class="heading">Connections Overview</h4>
-      <div
-        v-for="(connection, index) in connections"
-        :key="index"
-        class="connection-text"
-      >
-        <p>
-          <strong :style="{ color: getColor(connection.source.id) }">
-            {{ connection.source.name }}
-          </strong>
-          and
-          <strong :style="{ color: getColor(connection.target.id) }">
-            {{ connection.target.name }}
-          </strong>
-          share the following artists: {{ connection.sharedArtists.join(", ") }}
-        </p>
+    <div v-if="isLoaded">
+      <!-- Existing Connections -->
+      <div v-if="connections.length > 0">
+        <h4 class="heading">Connections Overview</h4>
+        <div
+          v-for="(connection, index) in connections"
+          :key="index"
+          class="connection-text"
+        >
+          <p>
+            <strong :style="{ color: getColor(connection.source.id) }">
+              {{ connection.source.name }}
+            </strong>
+            and
+            <strong :style="{ color: getColor(connection.target.id) }">
+              {{ connection.target.name }}
+            </strong>
+            share the following artists:
+            {{ connection.sharedArtists.join(", ") }}
+          </p>
+        </div>
       </div>
+
+      <!-- Isolated Playlists -->
+      <div v-if="isolatedNodes.length > 0">
+        <h4 class="heading">Isolated Playlists</h4>
+        <div
+          v-for="(playlist, index) in isolatedNodes"
+          :key="index"
+          class="connection-text"
+        >
+          <p>
+            <strong :style="{ color: getColor(playlist.id) }">
+              {{ playlist.name }}
+            </strong>
+            has no shared artists with your other playlists.
+          </p>
+        </div>
+      </div>
+
+      <!-- Additional Info -->
       <p class="info-text">
         Hover over the data points and connections on the chart to view
         additional details.
@@ -66,6 +89,7 @@ export default {
   },
   setup(props) {
     const connections = ref([]);
+    const isolatedNodes = ref([]); // New reactive variable
     const error = ref(null);
     const isLoaded = ref(false); // Spinner state
 
@@ -172,6 +196,18 @@ export default {
 
       connections.value = links;
 
+      // Identify connected playlist IDs
+      const connectedPlaylistIds = new Set();
+      links.forEach((link) => {
+        connectedPlaylistIds.add(link.source);
+        connectedPlaylistIds.add(link.target);
+      });
+
+      // Identify isolated nodes
+      isolatedNodes.value = nodes.filter(
+        (node) => !connectedPlaylistIds.has(node.id)
+      );
+
       const simulation = d3
         .forceSimulation(nodes)
         .force(
@@ -181,9 +217,11 @@ export default {
             .id((d) => d.id)
             .distance((d) => 150 / d.strength)
         )
-        .force("charge", d3.forceManyBody().strength(-100))
+        .force("charge", d3.forceManyBody().strength(-200)) // Adjusted strength
         .force("center", d3.forceCenter(width / 2, height / 2))
-        .force("collision", d3.forceCollide().radius(20));
+        .force("collision", d3.forceCollide().radius(30)) // Adjusted radius
+        .force("x", d3.forceX(width / 2).strength(0.05)) // New force to center nodes horizontally
+        .force("y", d3.forceY(height / 2).strength(0.05)); // New force to center nodes vertically
 
       const link = svg
         .append("g")
@@ -290,6 +328,7 @@ export default {
 
     return {
       connections,
+      isolatedNodes, // Return the new reactive variable
       error,
       getColor,
       isLoaded,
