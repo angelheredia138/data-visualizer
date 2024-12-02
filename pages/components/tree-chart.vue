@@ -139,10 +139,18 @@ const drawChristmasTreeChart = (artists) => {
     .attr("fill", (d, i) => d3.schemeCategory10[i % 10]) // Use D3 color scheme
     .style("filter", "url(#glow)") // Apply glow effect
     .on("mouseover", function (event, d) {
-      // Show tooltip with artist name
-      tooltip.style("display", "block").html(`<strong>${d.name}</strong>`);
+      // Show tooltip with artist name and image
+      tooltip.style("display", "block").html(
+        `<div style="display: flex; align-items: center;">
+         <img src="${d.images[0]?.url}" 
+              alt="${d.name}" 
+              style="width: 60px; height: 60px; border-radius: 50%; margin-right: 10px;">
+         <strong>${d.name}</strong>
+       </div>`
+      );
       d3.select(this).style("stroke", "#000").style("stroke-width", "2px");
     })
+
     .on("mousemove", (event) => {
       tooltip
         .style("top", event.pageY - 10 + "px")
@@ -198,7 +206,7 @@ const calculateOrnamentPositions = (count, width, height) => {
         yOffset -= 80; // Move the fifth ornament up more
       }
       if (index === 2) {
-        yOffset -= 16; // Move the fifth ornament up more
+        yOffset -= 20; // Move the fifth ornament up more
       }
       // Move other inner ornaments after the fifth even higher
       if (index > 4 && i !== 0 && i !== numOrnaments - 1) {

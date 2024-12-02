@@ -28,9 +28,10 @@
         <h2 class="subtitle">Chart Explanation</h2>
         <p class="explanation-text">
           <strong>Christmas Tree Chart:</strong> This chart displays your top 20
-          artists from the last year, represented as ornaments on a Christmas
-          tree. Hovering over each ornament will show you the artist
-          information. Enjoy exploring your musical tastes in a festive way!
+          artists of all time, represented as ornaments on a Christmas tree.
+          Hovering over each ornament will show you the artist name and image.
+          The top ornamnent is your highest artist, then from left to right is
+          2-20. Enjoy exploring your musical tastes in a festive way!
         </p>
         <p class="explanation-text">This chart is created using D3.js.</p>
       </div>
