@@ -16,7 +16,7 @@
     <div>
       <!-- Fixed Title and Back Button -->
       <div class="header-container">
-        <h1 class="page-title">Top Tracks Audio Features</h1>
+        <h1 class="page-title">Christmas Chart</h1>
 
         <v-btn color="primary" class="back-button" @click="goBack">
           Back to Home
@@ -25,66 +25,25 @@
 
       <!-- Top Section for Chart Explanations -->
       <div class="explanation-section" style="max-width: 800px">
-        <h2 class="subtitle">Chart Explanations</h2>
+        <h2 class="subtitle">Chart Explanation</h2>
         <p class="explanation-text">
-          <strong>Scatter Plot:</strong> This scatter plot visualizes the audio
-          features of your top tracks. Each point represents a track, plotted
-          based on its energy and danceability. Hover or tap on a point to see
-          more details about the track.
+          <strong>Christmas Tree Chart:</strong> This chart displays your top 20
+          artists from the last year, represented as ornaments on a Christmas
+          tree. Hovering over each ornament will show you the artist
+          information. Enjoy exploring your musical tastes in a festive way!
         </p>
-        <p class="explanation-text">
-          <strong>Radar Chart:</strong> This radar chart displays the audio
-          features of selected tracks. The chart shows danceability, energy,
-          tempo, and valence of each track. Hover or tap on the chart to see
-          detailed information about each track.
-        </p>
-        <p class="explanation-text">These charts are created using D3.js.</p>
+        <p class="explanation-text">This chart is created using D3.js.</p>
       </div>
 
       <!-- Graphs Section -->
       <div class="graphs-container">
-        <!-- Audio Features Scatter Plot -->
+        <!-- Christmas Tree Chart -->
         <div class="graph-item">
-          <h3 class="graph-title">Scatter Plot</h3>
+          <h3 class="graph-title">Christmas Tree Chart</h3>
           <div class="graph-content">
-            <ScatterPlot :timeRange="localTimeRange" />
+            <TreeChart />
           </div>
         </div>
-
-        <!-- Audio Features Radar Chart -->
-        <div class="graph-item">
-          <h3 class="graph-title">Radar Chart</h3>
-          <div class="graph-content">
-            <RadarChart :timeRange="localTimeRange" />
-          </div>
-        </div>
-      </div>
-
-      <!-- Audio Features Explanation -->
-      <div class="audio-features-explanation">
-        <h3 class="graph-title">Audio Features Explanation</h3>
-        <p class="explanation-text">
-          <strong>Danceability:</strong> Describes how suitable a track is for
-          dancing based on a combination of musical elements including tempo,
-          rhythm stability, beat strength, and overall regularity. A value of
-          0.0 is least danceable and 1.0 is most danceable.
-        </p>
-        <p class="explanation-text">
-          <strong>Energy:</strong> A measure from 0.0 to 1.0 and represents a
-          perceptual measure of intensity and activity. Typically, energetic
-          tracks feel fast, loud, and noisy.
-        </p>
-        <p class="explanation-text">
-          <strong>Tempo:</strong> The overall estimated tempo of a track in
-          beats per minute (BPM). In musical terminology, tempo is the speed or
-          pace of a given piece.
-        </p>
-        <p class="explanation-text">
-          <strong>Valence:</strong> A measure from 0.0 to 1.0 describing the
-          musical positiveness conveyed by a track. Tracks with high valence
-          sound more positive (e.g. happy, cheerful, euphoric), while tracks
-          with low valence sound more negative (e.g. sad, depressed, angry).
-        </p>
       </div>
     </div>
   </v-container>
@@ -93,8 +52,7 @@
 <script setup>
 import { ref, reactive, onMounted, onBeforeUnmount } from "vue";
 import { useRouter } from "vue-router";
-import ScatterPlot from "~/pages/components/scatter-plot.vue"; // Import the Scatter Plot component
-import RadarChart from "~/pages/components/radar-chart.vue"; // Import the Radar Chart component
+import TreeChart from "~/pages/components/tree-chart.vue"; // Import the Tree Chart component
 
 // State for loading overlay
 const showLoadingOverlay = ref(true);
@@ -105,9 +63,6 @@ const screenSize = reactive({
   height: window.innerHeight,
   isSmall: window.innerWidth < 768,
 });
-
-// Time range selection
-const localTimeRange = ref("medium_term");
 
 // Function to update screen size state
 const updateScreenSize = () => {
@@ -167,7 +122,7 @@ body,
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  padding: 30px;
+  padding: 20px;
   box-sizing: border-box;
   overflow-x: hidden;
 }
@@ -194,7 +149,7 @@ body,
 }
 
 .loading-message {
-  font-size: 1.5em;
+  font-size: 1.2em; /* Smaller font size */
   font-weight: bold;
   color: white;
 }
@@ -203,24 +158,24 @@ body,
 .header-container {
   width: 100%;
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 20px; /* Reduce margin */
   flex-shrink: 0;
 }
 
 .page-title {
   color: white;
-  font-size: 2.5em;
+  font-size: 2em; /* Reduce font size */
   font-weight: 700;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
 }
 
 .back-button {
   background-color: #e53e3e !important;
   color: white;
   text-transform: none;
-  font-size: 1.2em;
-  width: 150px;
-  height: 42px;
+  font-size: 1em; /* Reduce button size */
+  width: 120px; /* Smaller width */
+  height: 40px;
 }
 
 .back-button:hover {
@@ -230,12 +185,12 @@ body,
 /* Explanation Section */
 .explanation-section {
   background-color: rgba(255, 255, 255, 0.85);
-  padding: 20px;
+  padding: 15px; /* Reduce padding */
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  margin-bottom: 20px;
+  margin-bottom: 15px; /* Reduce margin */
   width: 100%;
-  max-width: 800px;
+  max-width: 700px; /* Reduce width */
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -245,22 +200,33 @@ body,
   margin-right: auto;
 }
 
+.subtitle {
+  font-size: 1.2em; /* Reduce font size */
+  text-align: center;
+}
+
+.explanation-text {
+  font-size: 0.9em; /* Reduce font size */
+  margin-bottom: 8px; /* Adjust margin */
+}
+
 /* Graphs Container */
 .graphs-container {
+  margin-bottom: 15px; /* Reduce margin */
   display: flex;
   flex-direction: column;
   width: 100%;
-  align-items: center;
+  align-items: center; /* Center graphs on mobile */
 }
 
 @media (min-width: 769px) {
   .animated-background {
-    align-items: stretch; /* Stretch charts on larger screens */
-    padding: 0;
+    align-items: stretch; /* Stretch on desktop */
+    padding: 0; /* Remove padding on desktop */
   }
   .graphs-container {
     flex-direction: row;
-    justify-content: center;
+    justify-content: center; /* Center graphs horizontally */
     align-items: flex-start;
   }
 }
@@ -268,62 +234,43 @@ body,
 /* Graph Item */
 .graph-item {
   width: 100%;
-  max-width: 600px;
-  margin: 20px 0;
-  background-color: rgba(255, 255, 255, 0.85);
+  max-width: 500px; /* Limit the width on mobile */
+  margin: 15px 0; /* Reduce margin */
+  background-color: rgba(
+    255,
+    255,
+    255,
+    0.85
+  ); /* Slightly transparent white background */
   border-radius: 8px;
+  padding: 15px; /* Reduce padding */
   box-sizing: border-box;
 }
 
 @media (min-width: 769px) {
   .graph-item {
-    max-width: 600px;
-    flex: 0 0 35%;
-    margin: 0 20px;
-    max-width: none;
+    flex: 0 0 35%; /* Reduce size */
+    margin: 0 15px; /* Reduce margin */
+    max-width: none; /* Remove max-width constraint */
   }
 }
 
 .graph-title {
-  font-size: 1.8em;
+  font-size: 1.5em; /* Reduce font size */
   color: black;
   text-align: center;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
 }
 
 .graph-content {
   width: 100%;
   height: 100%;
-  max-height: 450px; /* Responsive height */
-  display: flex;
-  justify-content: center;
-  margin-left: auto;
-  margin-right: auto;
 }
 
-@media (min-width: 769px) {
-  .graph-content {
-    width: 90%;
-    min-height: 700px;
-  }
-}
-
-/* Audio Features Explanation */
-.audio-features-explanation {
-  margin-top: 20px;
-  padding: 10px;
-  background-color: rgba(255, 255, 255, 0.85);
-  border-radius: 8px;
+/* Ensure the graph components fill their containers */
+.graph-content > * {
   width: 100%;
-  max-width: 800px;
-  box-sizing: border-box;
-  font-size: 0.8em;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  margin-left: auto;
-  margin-right: auto;
+  height: 100%;
 }
 
 /* Responsive Adjustments */
@@ -354,11 +301,11 @@ body,
 
   .graph-item {
     max-width: 80%;
-    padding: 0px;
+    padding: 10px;
   }
 
   .graph-content {
-    height: 340px;
+    height: 300px; /* Reduce height of the chart */
   }
 
   .graph-title {

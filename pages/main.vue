@@ -56,8 +56,8 @@ const visualizations = ref([
     path: "/top-genres-artists",
   },
   {
-    title: "Audio Features",
-    path: "/audio-features",
+    title: "Christmas Tree",
+    path: "/christmas",
   },
   {
     title: "Listening History",
