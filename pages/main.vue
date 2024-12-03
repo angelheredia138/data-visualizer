@@ -150,9 +150,12 @@ html {
 
 /* Style for grid buttons */
 .grid-item {
-  border-radius: 8px;
-  background-color: white !important; /* Initial background */
-  color: black !important; /* Initial text color */
+  /* Existing styles */
+  border: 15px solid transparent;
+  border-image: url("/assets/christmas-lights-border3.png") 900 repeat;
+  border-radius: 16px;
+  background-color: white !important;
+  color: black !important;
   font-size: 1.3em;
   font-weight: bold;
   height: 80px;
@@ -161,16 +164,27 @@ html {
   max-width: 300px;
   text-transform: none;
   cursor: pointer;
-  transition: transform 0.2s ease-in-out; /* Smooth transition for scaling */
+  transition: transform 0.2s ease-in-out;
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  overflow: hidden;
+  /* Updated box-shadow for white/yellow glow */
+  box-shadow: 0 0 15px rgba(255, 255, 200, 0.6),
+    /* Soft yellow */ 0 0 30px rgba(255, 255, 240, 0.6),
+    /* Ivory */ 0 0 45px rgba(255, 255, 255, 0.6); /* White */
 }
+
 .grid-item:hover {
   transform: scale(1.05);
   background-color: #f0f0f0 !important;
   color: black !important;
+  /* Intensify the glow on hover */
+  box-shadow: 0 0 20px rgba(255, 255, 200, 0.8),
+    0 0 40px rgba(255, 255, 240, 0.8), 0 0 60px rgba(255, 255, 255, 0.8);
 }
+
 .button-text {
   white-space: pre-line;
   text-align: center;
