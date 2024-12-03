@@ -108,8 +108,7 @@ body,
   height: 100%;
   margin: 0;
   padding: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: hidden !important; /* Prevent double scrollbars */
 }
 
 /* Main Container Styling */
@@ -324,6 +323,21 @@ body,
   }
   100% {
     background-position: 0% 50%;
+  }
+}
+@media (max-width: 768px) {
+  .graph-content {
+    position: relative;
+    height: auto;
+  }
+
+  .graph-content svg {
+    width: 100%;
+    height: auto;
+  }
+
+  .explanation-text {
+    margin-top: 10px;
   }
 }
 </style>

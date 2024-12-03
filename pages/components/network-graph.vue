@@ -196,17 +196,8 @@ export default {
 
       connections.value = links;
 
-      // Identify connected playlist IDs
-      const connectedPlaylistIds = new Set();
-      links.forEach((link) => {
-        connectedPlaylistIds.add(link.source);
-        connectedPlaylistIds.add(link.target);
-      });
-
-      // Identify isolated nodes
-      isolatedNodes.value = nodes.filter(
-        (node) => !connectedPlaylistIds.has(node.id)
-      );
+      let isDesktop = false; // Flag for desktop users
+      let activeNode = null; // Track the currently active node
 
       const simulation = d3
         .forceSimulation(nodes)
@@ -217,11 +208,11 @@ export default {
             .id((d) => d.id)
             .distance((d) => 150 / d.strength)
         )
-        .force("charge", d3.forceManyBody().strength(-200)) // Adjusted strength
+        .force("charge", d3.forceManyBody().strength(-200))
         .force("center", d3.forceCenter(width / 2, height / 2))
-        .force("collision", d3.forceCollide().radius(30)) // Adjusted radius
-        .force("x", d3.forceX(width / 2).strength(0.05)) // New force to center nodes horizontally
-        .force("y", d3.forceY(height / 2).strength(0.05)); // New force to center nodes vertically
+        .force("collision", d3.forceCollide().radius(30))
+        .force("x", d3.forceX(width / 2).strength(0.05))
+        .force("y", d3.forceY(height / 2).strength(0.05));
 
       const link = svg
         .append("g")
@@ -263,17 +254,60 @@ export default {
         .style("pointer-events", "none")
         .style("display", "none");
 
+      // Function to detect if the device is touch-enabled
+      function isTouchDevice() {
+        return "ontouchstart" in window || navigator.maxTouchPoints;
+      }
+
       node
-        .on("mouseover", (event, d) => {
-          tooltip.style("display", "block").html(`<strong>${d.name}</strong>`);
+        .on("mouseover", function (event, d) {
+          if (!isTouchDevice()) {
+            // Desktop behavior
+            if (activeNode !== this) {
+              if (activeNode) {
+                d3.select(activeNode).attr("stroke", null).attr("r", 10);
+              }
+              activeNode = this;
+              tooltip
+                .style("display", "block")
+                .html(`<strong>${d.name}</strong>`)
+                .style("top", `${event.pageY - 10}px`)
+                .style("left", `${event.pageX + 10}px`);
+              d3.select(this).attr("stroke", "#000").attr("r", 12);
+            }
+          }
         })
-        .on("mousemove", (event) => {
-          tooltip
-            .style("top", `${event.pageY - 10}px`)
-            .style("left", `${event.pageX + 10}px`);
+        .on("mouseout", function () {
+          if (!isTouchDevice()) {
+            // Desktop behavior
+            tooltip.style("display", "none");
+            d3.select(this).attr("stroke", null).attr("r", 10);
+            activeNode = null;
+          }
         })
-        .on("mouseout", () => {
-          tooltip.style("display", "none");
+        .on("click", function (event, d) {
+          if (isTouchDevice()) {
+            // Mobile behavior
+            if (activeNode === this) {
+              // Deselect the node and hide tooltip
+              tooltip.style("display", "none");
+              d3.select(this).attr("stroke", null).attr("r", 10);
+              activeNode = null;
+            } else {
+              // Deselect the previously active node
+              if (activeNode) {
+                d3.select(activeNode).attr("stroke", null).attr("r", 10);
+              }
+              // Select the new node and show tooltip
+              activeNode = this;
+              tooltip
+                .style("display", "block")
+                .html(`<strong>${d.name}</strong>`)
+                .style("top", `${event.pageY - 10}px`)
+                .style("left", `${event.pageX + 10}px`);
+              d3.select(this).attr("stroke", "#000").attr("r", 12);
+            }
+          }
         });
 
       link
@@ -283,10 +317,7 @@ export default {
             .style("display", "block")
             .html(
               `<strong>Playlists:</strong> ${d.source.name} & ${d.target.name}<br/><strong>Shared Artists:</strong> ${sharedArtists}`
-            );
-        })
-        .on("mousemove", (event) => {
-          tooltip
+            )
             .style("top", `${event.pageY - 10}px`)
             .style("left", `${event.pageX + 10}px`);
         })
