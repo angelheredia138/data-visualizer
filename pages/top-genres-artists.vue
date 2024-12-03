@@ -17,7 +17,6 @@
       <!-- Fixed Title and Back Button -->
       <div class="header-container">
         <h1 class="page-title">Genre Ranking and Artist Leaderboard!</h1>
-
         <v-btn color="primary" class="back-button" @click="goBack">
           Back to Home
         </v-btn>

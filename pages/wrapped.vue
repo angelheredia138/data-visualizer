@@ -13,14 +13,13 @@
     </div>
 
     <!-- Main Content -->
-    <div v-show="!loading">
-      <!-- Header with Title and Back Button -->
-      <div class="header-container">
-        <h1 class="page-title">Classic Spotify Wrapped</h1>
-        <v-btn color="primary" class="back-button" @click="navigateToHome">
-          Back to Home
-        </v-btn>
-      </div>
+
+    <!-- Header with Title and Back Button -->
+    <div class="header-container">
+      <h1 class="page-title">Classic Spotify Wrapped</h1>
+      <v-btn color="primary" class="back-button" @click="navigateToHome">
+        Back to Home
+      </v-btn>
 
       <!-- Graphs Container -->
       <div class="graphs-container">
@@ -193,6 +192,9 @@ body,
   left: 0;
   width: 100%;
   height: 100%;
+  background: linear-gradient(270deg, #4299e1, #48bb78, #4299e1);
+  background-size: 600% 600%;
+  animation: gradientAnimation 10s ease infinite;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -213,19 +215,16 @@ body,
 /* Header */
 .header-container {
   width: 100%;
-  display: flex; /* Use flexbox */
-  flex-direction: column; /* Stack children vertically */
-  align-items: center; /* Center horizontally */
-  justify-content: center; /* Center vertically */
-  text-align: center; /* Center text */
-  margin-bottom: 30px; /* Match the spacing from leaderboard */
+  text-align: center;
+  margin-bottom: 30px;
+  flex-shrink: 0;
 }
 
 .page-title {
   color: white;
-  font-size: 2.5em; /* Match the font size */
-  font-weight: 700; /* Ensure bold weight matches */
-  margin-bottom: 15px; /* Match the bottom margin */
+  font-size: 2.5em;
+  font-weight: 700;
+  margin-bottom: 15px;
 }
 
 .back-button {
@@ -234,6 +233,7 @@ body,
   text-transform: none;
   font-size: 1.2rem;
   width: 150px;
+  margin-bottom: 15px;
   height: 42px;
 }
 

@@ -4,15 +4,6 @@
 
     <div v-if="error" class="error-message">{{ error }}</div>
 
-    <div v-if="loading" class="loading-spinner">
-      <v-progress-circular
-        :size="40"
-        :width="4"
-        indeterminate
-        color="white"
-        class="loading-spinner"
-      ></v-progress-circular>
-    </div>
     <div v-else-if="!dataRevealed">
       <v-btn
         v-if="!countdownActive"

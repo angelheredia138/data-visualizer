@@ -125,11 +125,11 @@ const drawChristmasTreeChart = (artists) => {
     .attr("width", 40)
     .attr("height", 60)
     .attr("fill", "#8B4513"); // Brown color
-
-  // Draw ornaments (nodes)
+  let isHovering = false;
+  let selectedOrnament = null;
   svg
     .selectAll(".ornament")
-    .data(artists)
+    .data(artists.map((artist) => ({ ...artist, clicked: false }))) // Add a 'clicked' property
     .enter()
     .append("circle")
     .attr("class", "ornament")
@@ -139,26 +139,62 @@ const drawChristmasTreeChart = (artists) => {
     .attr("fill", (d, i) => d3.schemeCategory10[i % 10]) // Use D3 color scheme
     .style("filter", "url(#glow)") // Apply glow effect
     .on("mouseover", function (event, d) {
-      // Show tooltip with artist name and image
-      tooltip.style("display", "block").html(
-        `<div style="display: flex; align-items: center;">
-         <img src="${d.images[0]?.url}" 
-              alt="${d.name}" 
-              style="width: 60px; height: 60px; border-radius: 50%; margin-right: 10px;">
-         <strong>${d.name}</strong>
-       </div>`
-      );
-      d3.select(this).style("stroke", "#000").style("stroke-width", "2px");
-    })
+      isHovering = true;
 
-    .on("mousemove", (event) => {
-      tooltip
-        .style("top", event.pageY - 10 + "px")
-        .style("left", event.pageX + 10 + "px");
+      // Show tooltip if not already clicked
+      if (!d.clicked) {
+        tooltip
+          .style("display", "block")
+          .html(
+            `<div style="display: flex; align-items: center;">
+              <img src="${d.images[0]?.url}" 
+                  alt="${d.name}" 
+                  style="width: 60px; height: 60px; border-radius: 50%; margin-right: 10px;">
+              <strong>${d.name}</strong>
+            </div>`
+          )
+          .style("top", `${event.pageY - 10}px`)
+          .style("left", `${event.pageX + 10}px`);
+      }
     })
-    .on("mouseout", function () {
-      tooltip.style("display", "none");
-      d3.select(this).style("stroke", "none");
+    .on("mousemove", (event) => {
+      if (isHovering) {
+        const tooltipWidth = 200; // Approximate tooltip width
+        const tooltipHeight = 100; // Approximate tooltip height
+        const pageWidth = window.innerWidth;
+        const pageHeight = window.innerHeight;
+
+        let x = event.pageX + 10; // Default x offset
+        let y = event.pageY - 10; // Default y offset
+
+        // Adjust x position if the tooltip goes off-screen
+        if (x + tooltipWidth > pageWidth) {
+          x = event.pageX - tooltipWidth - 10; // Move tooltip to the left
+        }
+
+        // Adjust y position if the tooltip goes off-screen
+        if (y + tooltipHeight > pageHeight) {
+          y = event.pageY - tooltipHeight - 10; // Move tooltip up
+        }
+
+        tooltip.style("top", `${y}px`).style("left", `${x}px`);
+      }
+    })
+    .on("mouseout", function (event, d) {
+      isHovering = false;
+
+      // Hide tooltip only if not clicked
+      if (!d.clicked) {
+        tooltip.style("display", "none");
+      }
+    })
+    .on("click", function (event, d) {
+      // Toggle the clicked state
+      d.clicked = !d.clicked;
+
+      if (!d.clicked) {
+        tooltip.style("display", "none");
+      }
     });
 };
 
