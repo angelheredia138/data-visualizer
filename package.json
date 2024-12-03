@@ -12,6 +12,7 @@
   "dependencies": {
     "@mdi/font": "^7.4.47",
     "axios": "^1.7.7",
+    "canvas-confetti": "^1.9.3",
     "d3": "^7.9.0",
     "d3-cloud": "^1.2.7",
     "dotenv": "^16.4.5",
@@ -19,6 +20,7 @@
     "nuxt": "^3.13.0",
     "vue": "latest",
     "vue-router": "latest",
+    "vue-scrollto": "^2.20.0",
     "vuetify": "^3.7.0-beta.1",
     "wordcloud": "^1.2.3",
     "wordcloud2": "^1.0.0"

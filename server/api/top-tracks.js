@@ -1,6 +1,5 @@
 import { defineEventHandler, getQuery } from "h3";
 import axios from "axios";
-import { getSpotifyAccessToken } from "./utils";
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event);

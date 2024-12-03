@@ -2,17 +2,23 @@ import * as dotenv from "dotenv";
 dotenv.config(); // Ensure dotenv loads the environment variables
 
 export default defineNuxtConfig({
-  css: ["~/assets/css/global.css"], // Include your global CSS file here
+  // Include your global CSS file here
+  css: ["~/assets/css/global.css"],
+
   devServer: {
     host: "0.0.0.0",
     port: 3000,
   },
+
   build: {
     transpile: ["vuetify"],
   },
 
-  plugins: ["~/plugins/vuetify.ts", "~/plugins/axios"],
-  compatibilityDate: "2024-09-14",
+  plugins: [
+    "~/plugins/vuetify.ts",
+    "~/plugins/axios",
+    "~/plugins/vue-scrollto.ts",
+  ],
 
   runtimeConfig: {
     // Server-side environment variables (not exposed to the client)
@@ -36,4 +42,6 @@ export default defineNuxtConfig({
       });
     },
   },
+
+  compatibilityDate: "2024-12-02",
 });
