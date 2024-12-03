@@ -13,11 +13,10 @@
     </div>
 
     <!-- Content to show behind loading overlay -->
-    <div>
+    <div v-if="!showLoadingOverlay">
       <!-- Fixed Title and Back Button -->
       <div class="header-container">
         <h1 class="page-title">Genre Pie Chart and Word Cloud!</h1>
-
         <v-btn color="primary" class="back-button" @click="goBack">
           Back to Home
         </v-btn>
@@ -47,7 +46,9 @@
         <div class="graph-item">
           <h3 class="graph-title">Genre Pie Chart</h3>
           <div class="graph-content">
-            <PieChart />
+            <client-only>
+              <PieChart />
+            </client-only>
           </div>
         </div>
 
@@ -55,7 +56,9 @@
         <div class="graph-item">
           <h3 class="graph-title">Genre Word Cloud</h3>
           <div class="graph-content">
-            <WordCloud />
+            <client-only>
+              <WordCloud />
+            </client-only>
           </div>
         </div>
       </div>
@@ -64,27 +67,11 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, onBeforeUnmount } from "vue";
+import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import PieChart from "~/pages/components/pie-chart.vue";
-import WordCloud from "~/pages/components/word-cloud.vue";
 
 // State for loading overlay
 const showLoadingOverlay = ref(true);
-
-// Responsive screen size state
-const screenSize = reactive({
-  width: window.innerWidth,
-  height: window.innerHeight,
-  isSmall: window.innerWidth < 768,
-});
-
-// Function to update screen size state
-const updateScreenSize = () => {
-  screenSize.width = window.innerWidth;
-  screenSize.height = window.innerHeight;
-  screenSize.isSmall = window.innerWidth < 768;
-};
 
 // Router navigation
 const router = useRouter();
@@ -92,20 +79,23 @@ const goBack = () => {
   router.push("/main");
 };
 
-// Add event listener on mount
-onMounted(() => {
-  window.addEventListener("resize", updateScreenSize);
-  updateScreenSize(); // Initialize with current size
+// Dynamic import of the WordCloud component
+const WordCloud = ref(null);
+const PieChart = ref(null);
 
-  // Hide the loading overlay after 2 seconds (adjust as needed)
+onMounted(() => {
+  // Dynamically import components on the client-side
+  import("~/pages/components/word-cloud.vue").then((module) => {
+    WordCloud.value = module.default;
+  });
+  import("~/pages/components/pie-chart.vue").then((module) => {
+    PieChart.value = module.default;
+  });
+
+  // Simulate loading delay
   setTimeout(() => {
     showLoadingOverlay.value = false;
   }, 2000);
-});
-
-// Remove event listener on before unmount
-onBeforeUnmount(() => {
-  window.removeEventListener("resize", updateScreenSize);
 });
 </script>
 

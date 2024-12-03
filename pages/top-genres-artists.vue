@@ -82,22 +82,26 @@ const showLoadingOverlay = ref(true);
 
 // Responsive screen size state
 const screenSize = reactive({
-  width: window.innerWidth,
-  height: window.innerHeight,
-  isSmall: window.innerWidth < 768,
+  width: 0,
+  height: 0,
+  isSmall: false,
 });
 
 // Function to update screen size state
 const updateScreenSize = () => {
-  screenSize.width = window.innerWidth;
-  screenSize.height = window.innerHeight;
-  screenSize.isSmall = window.innerWidth < 768;
+  if (typeof window !== "undefined") {
+    screenSize.width = window.innerWidth;
+    screenSize.height = window.innerHeight;
+    screenSize.isSmall = window.innerWidth < 768;
+  }
 };
 
 // Add event listener on mount
 onMounted(() => {
-  window.addEventListener("resize", updateScreenSize);
-  updateScreenSize(); // Initialize with current size
+  if (typeof window !== "undefined") {
+    window.addEventListener("resize", updateScreenSize);
+    updateScreenSize(); // Initialize with current size
+  }
 
   // Hide the loading overlay after 2 seconds (or whatever duration you need)
   setTimeout(() => {
@@ -107,7 +111,9 @@ onMounted(() => {
 
 // Remove event listener on before unmount
 onBeforeUnmount(() => {
-  window.removeEventListener("resize", updateScreenSize);
+  if (typeof window !== "undefined") {
+    window.removeEventListener("resize", updateScreenSize);
+  }
 });
 
 // Navigation handler to go back to the home page

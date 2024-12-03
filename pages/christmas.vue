@@ -30,7 +30,7 @@
           <strong>Christmas Tree Chart:</strong> This chart displays your top 20
           artists of all time, represented as ornaments on a Christmas tree.
           Hovering over each ornament will show you the artist name and image.
-          The top ornamnent is your highest artist, then from left to right is
+          The top ornament is your highest artist, then from left to right is
           2-20. Enjoy exploring your musical tastes in a festive way!
         </p>
         <p class="explanation-text">This chart is created using D3.js.</p>
@@ -60,16 +60,18 @@ const showLoadingOverlay = ref(true);
 
 // Responsive screen size state
 const screenSize = reactive({
-  width: window.innerWidth,
-  height: window.innerHeight,
-  isSmall: window.innerWidth < 768,
+  width: 0,
+  height: 0,
+  isSmall: false,
 });
 
 // Function to update screen size state
 const updateScreenSize = () => {
-  screenSize.width = window.innerWidth;
-  screenSize.height = window.innerHeight;
-  screenSize.isSmall = window.innerWidth < 768;
+  if (typeof window !== "undefined") {
+    screenSize.width = window.innerWidth;
+    screenSize.height = window.innerHeight;
+    screenSize.isSmall = screenSize.width < 768;
+  }
 };
 
 // Router navigation
@@ -80,8 +82,10 @@ const goBack = () => {
 
 // Add event listener on mount
 onMounted(() => {
-  window.addEventListener("resize", updateScreenSize);
-  updateScreenSize(); // Initialize with current size
+  if (typeof window !== "undefined") {
+    window.addEventListener("resize", updateScreenSize);
+    updateScreenSize(); // Initialize with current size
+  }
 
   // Hide the loading overlay after 2 seconds (adjust as needed)
   setTimeout(() => {
@@ -91,7 +95,9 @@ onMounted(() => {
 
 // Remove event listener on before unmount
 onBeforeUnmount(() => {
-  window.removeEventListener("resize", updateScreenSize);
+  if (typeof window !== "undefined") {
+    window.removeEventListener("resize", updateScreenSize);
+  }
 });
 </script>
 

@@ -61,16 +61,16 @@
 <script setup>
 import { ref, reactive, onMounted, onBeforeUnmount } from "vue";
 import { useRouter } from "vue-router";
-import Timeline from "~/pages/components/timeline.vue"; // Import the Scatter Plot component
+import Timeline from "~/pages/components/timeline.vue"; // Import the Timeline component
 
 // State for loading overlay
 const showLoadingOverlay = ref(true);
 
 // Responsive screen size state
 const screenSize = reactive({
-  width: window.innerWidth,
-  height: window.innerHeight,
-  isSmall: window.innerWidth < 768,
+  width: 0,
+  height: 0,
+  isSmall: false,
 });
 
 // Time range selection
@@ -78,9 +78,11 @@ const localTimeRange = ref("medium_term");
 
 // Function to update screen size state
 const updateScreenSize = () => {
-  screenSize.width = window.innerWidth;
-  screenSize.height = window.innerHeight;
-  screenSize.isSmall = window.innerWidth < 768;
+  if (typeof window !== "undefined") {
+    screenSize.width = window.innerWidth;
+    screenSize.height = window.innerHeight;
+    screenSize.isSmall = window.innerWidth < 768;
+  }
 };
 
 // Router navigation
@@ -91,8 +93,10 @@ const goBack = () => {
 
 // Add event listener on mount
 onMounted(() => {
-  window.addEventListener("resize", updateScreenSize);
-  updateScreenSize(); // Initialize with current size
+  if (typeof window !== "undefined") {
+    window.addEventListener("resize", updateScreenSize);
+    updateScreenSize(); // Initialize with current size
+  }
 
   // Hide the loading overlay after 2 seconds (adjust as needed)
   setTimeout(() => {
@@ -102,7 +106,14 @@ onMounted(() => {
 
 // Remove event listener on before unmount
 onBeforeUnmount(() => {
-  window.removeEventListener("resize", updateScreenSize);
+  if (typeof window !== "undefined") {
+    window.removeEventListener("resize", updateScreenSize);
+  }
+});
+
+// Update the window title using useHead
+useHead({
+  title: "Listening History",
 });
 </script>
 

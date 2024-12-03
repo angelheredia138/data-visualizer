@@ -151,11 +151,38 @@ const scrollToNext = (id, buttonIndex) => {
   }
 };
 
+// Responsive screen size state
+const screenSize = ref({
+  width: 0,
+  height: 0,
+  isSmall: false,
+});
+
+// Function to update screen size state
+const updateScreenSize = () => {
+  if (typeof window !== "undefined") {
+    screenSize.value.width = window.innerWidth;
+    screenSize.value.height = window.innerHeight;
+    screenSize.value.isSmall = window.innerWidth < 768;
+  }
+};
+
 onMounted(() => {
+  if (typeof window !== "undefined") {
+    window.addEventListener("resize", updateScreenSize);
+    updateScreenSize(); // Initialize with current size
+  }
+
   // Simulate loading delay
   setTimeout(() => {
     loading.value = false;
   }, 2000);
+});
+
+onBeforeUnmount(() => {
+  if (typeof window !== "undefined") {
+    window.removeEventListener("resize", updateScreenSize);
+  }
 });
 </script>
 

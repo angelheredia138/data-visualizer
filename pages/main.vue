@@ -79,7 +79,7 @@ const visualizations = ref([
 
 // State to track the button layout based on screen size
 const screenSize = reactive({
-  isSmall: window.innerWidth < 768,
+  isSmall: false,
 });
 
 // Computed property to determine if the user is on a mobile screen
@@ -87,7 +87,9 @@ const isMobile = computed(() => screenSize.isSmall);
 
 // Watch for screen size changes
 const updateScreenSize = () => {
-  screenSize.isSmall = window.innerWidth < 768;
+  if (typeof window !== "undefined") {
+    screenSize.isSmall = window.innerWidth < 768;
+  }
 };
 
 // Handle navigation to a specific visualization
@@ -104,13 +106,17 @@ const handleLogout = () => {
 
 // Add event listener on mount
 onMounted(() => {
-  window.addEventListener("resize", updateScreenSize);
-  updateScreenSize(); // Initialize with current size
+  if (typeof window !== "undefined") {
+    window.addEventListener("resize", updateScreenSize);
+    updateScreenSize(); // Initialize with current size
+  }
 });
 
 // Remove event listener on before unmount
 onBeforeUnmount(() => {
-  window.removeEventListener("resize", updateScreenSize);
+  if (typeof window !== "undefined") {
+    window.removeEventListener("resize", updateScreenSize);
+  }
 });
 
 useHead({
