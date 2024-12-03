@@ -126,26 +126,27 @@ const drawClockTimelineChart = (tracks) => {
       return `${hour}${period}`;
     });
 
-  // Add nodes dynamically with the original spacing logic
-  const now = new Date();
-  const todayStart = new Date(now.setHours(0, 0, 0, 0)); // Start of today
-
-  const nodes = clockGroup.selectAll(".node").data(tracks, (d) => d.track.id);
-
-  // Update nodes (delete old nodes, and add new ones)
-  nodes.exit().remove();
-
+  // Tooltip logic
   const tooltip = d3
     .select("body")
     .append("div")
     .attr("class", "tooltip")
     .style("position", "absolute")
     .style("background", "#fff")
-    .style("border", "1px solid #ccc")
     .style("padding", "10px")
     .style("border-radius", "5px")
     .style("pointer-events", "none")
     .style("display", "none");
+
+  let activeNode = null; // Keep track of the currently active node
+
+  // Add nodes dynamically with the original spacing logic
+  const now = new Date();
+  const todayStart = new Date(now.setHours(0, 0, 0, 0)); // Start of today
+
+  const nodes = clockGroup.selectAll(".node").data(tracks, (d) => d.track.id);
+
+  nodes.exit().remove();
 
   nodes
     .enter()
@@ -177,49 +178,91 @@ const drawClockTimelineChart = (tracks) => {
       }
     })
     .style("opacity", 0.8)
-    .attr("data-time", (track) => new Date(track.played_at).getTime())
     .on("mouseover", function (event, track) {
-      d3.select(this).transition().attr("r", 6);
-      const date = new Date(track.played_at);
-      const formattedTime = formatTime(date);
+      if (activeNode !== this) {
+        const date = new Date(track.played_at);
+        const formattedTime = formatTime(date);
 
-      const maxLength = 30;
-      const trackName =
-        track.track.name.length > maxLength
-          ? `${track.track.name.substring(0, maxLength)}...`
-          : track.track.name;
+        const maxLength = 30;
+        const trackName =
+          track.track.name.length > maxLength
+            ? `${track.track.name.substring(0, maxLength)}...`
+            : track.track.name;
 
-      const artistNames = track.track.artists
-        .map((artist) => artist.name)
-        .join(", ");
-      const truncatedArtists =
-        artistNames.length > maxLength
-          ? `${artistNames.substring(0, maxLength)}...`
-          : artistNames;
+        const artistNames = track.track.artists
+          .map((artist) => artist.name)
+          .join(", ");
+        const truncatedArtists =
+          artistNames.length > maxLength
+            ? `${artistNames.substring(0, maxLength)}...`
+            : artistNames;
 
-      const isYesterday = new Date(track.played_at) < todayStart;
+        const isYesterday = new Date(track.played_at) < todayStart;
 
-      tooltip
-        .style("display", "block")
-        .html(
-          `<strong>${trackName}</strong><br/>Played at: ${formattedTime}<br/>Artist: ${truncatedArtists}<br/>${
-            isYesterday ? "Yesterday" : "Today"
-          }`
-        );
-      d3.select(this).style("stroke", "#000").style("stroke-width", "2px");
-    })
-    .on("mousemove", (event) => {
-      tooltip
-        .style("top", event.pageY - 10 + "px")
-        .style("left", event.pageX + 10 + "px");
+        tooltip
+          .style("display", "block")
+          .html(
+            `<strong>${trackName}</strong><br/>Played at: ${formattedTime}<br/>Artist: ${truncatedArtists}<br/>${
+              isYesterday ? "Yesterday" : "Today"
+            }`
+          )
+          .style("top", event.pageY - 10 + "px")
+          .style("left", event.pageX + 10 + "px");
+        d3.select(this).style("stroke", "#000").style("stroke-width", "2px");
+      }
     })
     .on("mouseout", function () {
-      d3.select(this).transition().attr("r", 4);
-      tooltip.style("display", "none");
-      d3.select(this).style("stroke", "none");
-    });
+      if (activeNode !== this) {
+        tooltip.style("display", "none");
+        d3.select(this).style("stroke", "none");
+      }
+    })
+    .on("click", function (event, track) {
+      if (activeNode === this) {
+        // Deselect the current node
+        tooltip.style("display", "none");
+        d3.select(this).style("stroke", "none").attr("r", 5); // Reset stroke and size
+        activeNode = null;
+      } else {
+        // Deselect the previously active node
+        if (activeNode) {
+          d3.select(activeNode).style("stroke", "none").attr("r", 5); // Reset stroke and size
+        }
 
-  // Draw clock hand
+        // Set the current node as active
+        activeNode = this;
+        const date = new Date(track.played_at);
+        const formattedTime = formatTime(date);
+
+        const maxLength = 30;
+        const trackName =
+          track.track.name.length > maxLength
+            ? `${track.track.name.substring(0, maxLength)}...`
+            : track.track.name;
+
+        const artistNames = track.track.artists
+          .map((artist) => artist.name)
+          .join(", ");
+        const truncatedArtists =
+          artistNames.length > maxLength
+            ? `${artistNames.substring(0, maxLength)}...`
+            : artistNames;
+
+        const isYesterday = new Date(track.played_at) < todayStart;
+
+        tooltip
+          .style("display", "block")
+          .html(
+            `<strong>${trackName}</strong><br/>Played at: ${formattedTime}<br/>Artist: ${truncatedArtists}<br/>${
+              isYesterday ? "Yesterday" : "Today"
+            }`
+          )
+          .style("top", `${event.pageY - 10}px`)
+          .style("left", `${event.pageX + 10}px`);
+
+        d3.select(this).style("stroke", "#000").attr("r", 6); // Highlight the new node
+      }
+    });
   drawClockHand(clockGroup, radius);
 };
 

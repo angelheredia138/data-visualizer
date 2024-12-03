@@ -338,4 +338,21 @@ body,
     background-position: 0% 50%;
   }
 }
+
+/* Additional mobile-specific styles */
+@media (max-width: 768px) {
+  .graph-content {
+    position: relative;
+    height: auto;
+  }
+
+  .graph-content svg {
+    width: 100%;
+    height: auto;
+  }
+
+  .explanation-text {
+    margin-top: 10px;
+  }
+}
 </style>
