@@ -32,7 +32,8 @@ const config = useRuntimeConfig();
 const handleLogin = () => {
   const clientId = config.public.spotifyClientId;
   const redirectUri = config.public.spotifyRedirectUri;
-  const scope = "user-read-recently-played user-top-read"; // Corrected scope
+  const scope =
+    "user-read-recently-played user-read-currently-playing user-top-read"; // Corrected scope
 
   const spotifyAuthUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=token&redirect_uri=${redirectUri}&scope=${scope}&show_dialog=true`;
 

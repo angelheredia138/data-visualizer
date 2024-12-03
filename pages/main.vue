@@ -24,8 +24,8 @@
       >
         <v-col v-for="(vis, index) in visualizations" :key="index" cols="12">
           <v-btn
+            :class="['grid-item', { 'mobile-background': isMobile }]"
             color="primary"
-            class="grid-item"
             outlined
             @click="handleNavigate(vis.path)"
           >
@@ -76,9 +76,6 @@ const visualizations = ref([
     path: "/wrapped",
   },
 ]);
-
-// Function to split the title by line break
-const splitTitle = (title) => title.split("\n");
 
 // State to track the button layout based on screen size
 const screenSize = reactive({
@@ -176,6 +173,11 @@ html {
     /* Ivory */ 0 0 45px rgba(255, 255, 255, 0.6); /* White */
 }
 
+/* Special background adjustment for mobile */
+.mobile-background {
+  border-image: url("/assets/christmas-lights-border3.png") 1250 repeat; /* Smaller scale */
+}
+
 .grid-item:hover {
   transform: scale(1.05);
   background-color: #f0f0f0 !important;
@@ -253,7 +255,7 @@ html {
 
   /* Adjust button sizes for mobile */
   .grid-item {
-    font-size: 0.75em; /* Smaller font size */
+    font-size: 0.6em; /* Smaller font size */
     height: 50px; /* Reduced height */
     width: 80%; /* Reduced width */
     max-width: 150px; /* Restrict max-width */

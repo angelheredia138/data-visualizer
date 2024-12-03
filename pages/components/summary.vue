@@ -1,106 +1,302 @@
 <template>
   <div class="chart-container-transparent">
-    <div class="last-played">Listening Summary for the Last Month</div>
-    <svg id="summary-chart"></svg>
+    <canvas ref="confettiCanvas" class="confetti-canvas"></canvas>
+
     <div v-if="error" class="error-message">{{ error }}</div>
-    <div v-if="loading" class="loading-spinner">Loading...</div>
+
+    <div v-if="loading" class="loading-spinner">
+      <v-progress-circular
+        :size="40"
+        :width="4"
+        indeterminate
+        color="white"
+        class="loading-spinner"
+      ></v-progress-circular>
+    </div>
+    <div v-else-if="!dataRevealed">
+      <v-btn
+        v-if="!countdownActive"
+        color="primary"
+        @click="startCountdown"
+        class="reveal-button"
+      >
+        Reveal Summary
+      </v-btn>
+
+      <transition name="fade">
+        <h3 v-if="countdownActive && countdown > 0" class="countdown-message">
+          {{ countdown }}
+        </h3>
+      </transition>
+    </div>
+
+    <div v-else>
+      <!-- Last Three Songs -->
+      <div class="songs-list">
+        <h3>Your Last Three Songs</h3>
+        <div
+          v-for="(song, index) in lastThreeSongs"
+          :key="index"
+          class="song-card"
+        >
+          <img :src="song.albumImage" alt="Album Art" class="artist-image" />
+          <div>
+            <h3>{{ song.name }}</h3>
+            <p>{{ song.artist }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Listening Trends -->
+      <div class="summary-section">
+        <h3>Listening Trends</h3>
+        <p>{{ summary.trends }}</p>
+      </div>
+
+      <!-- Unique Genres -->
+      <div class="summary-section">
+        <h3>Unique Genres</h3>
+        <p>{{ getGenresText(summary.uniqueGenres) }}</p>
+      </div>
+
+      <!-- Unique Artists -->
+      <div class="summary-section">
+        <h3>Unique Artists</h3>
+        <p>{{ getArtistsText(summary.uniqueArtists) }}</p>
+      </div>
+    </div>
+    <!-- Currently Playing -->
+    <div v-if="nowPlaying" class="now-playing-card">
+      <h3>YOU'RE LISTENING TO MUSIC RIGHT NOW!</h3>
+      <p>HERE'S THE SONG:</p>
+      <img :src="nowPlaying.albumImage" alt="Album Art" class="artist-image" />
+      <h3>{{ nowPlaying.name }}</h3>
+      <p>{{ nowPlaying.artist }}</p>
+    </div>
   </div>
 </template>
 
 <script setup>
-import * as d3 from "d3";
-import { ref, onMounted } from "vue";
-import { useNuxtApp } from "#app";
+import { ref, onMounted, onBeforeUnmount } from "vue";
+import confetti from "canvas-confetti";
 
-const listeningTime = ref(null);
-const uniqueGenres = ref(null);
-const uniqueArtists = ref(null);
-const trends = ref(null);
+const lastThreeSongs = ref([]);
+const nowPlaying = ref(null);
+const summary = ref({
+  uniqueGenres: null,
+  uniqueArtists: null,
+  trends: null,
+});
+const countdown = ref(3);
+const countdownActive = ref(false);
+const dataRevealed = ref(false);
 const loading = ref(false);
 const error = ref(null);
 
+// Confetti setup
+const confettiCanvas = ref(null);
+let confettiInstance;
+
+onMounted(() => {
+  confettiInstance = confetti.create(confettiCanvas.value, {
+    resize: true,
+    useWorker: true,
+  });
+  fetchListeningData();
+  pollNowPlaying(); // Start polling the now-playing endpoint
+});
+
+onBeforeUnmount(() => {
+  if (confettiInstance) {
+    confettiInstance.reset();
+  }
+});
+
 const { $axios } = useNuxtApp();
 
-const fetchSummaryData = async () => {
+const fetchListeningData = async () => {
   try {
     loading.value = true;
     const token = localStorage.getItem("spotify_access_token");
     if (!token) throw new Error("No Spotify token found.");
 
     const headers = { Authorization: `Bearer ${token}` };
-    const response = await $axios.get(`/wrapped/`, { headers });
 
-    listeningTime.value = response.data.listening_time;
-    uniqueGenres.value = response.data.unique_genres;
-    uniqueArtists.value = response.data.unique_artists;
-    trends.value = response.data.trends;
+    // Fetch last three songs
+    const lastThreeRes = await $axios.get("/last_three_songs", { headers });
+    lastThreeSongs.value = lastThreeRes.data.lastThreeSongs;
 
-    drawSummaryChart();
+    // Fetch currently playing song
+    const nowPlayingRes = await $axios.get("/now_playing", { headers });
+    nowPlaying.value = nowPlayingRes.data.nowPlaying;
+
+    // Fetch listening trends, unique genres, and unique artists
+    const [uniqueGenresRes, uniqueArtistsRes, trendsRes] = await Promise.all([
+      $axios.get("/unique_genres", { headers }),
+      $axios.get("/unique_artists", { headers }),
+      $axios.get("/trends_insights", { headers }),
+    ]);
+
+    summary.value = {
+      uniqueGenres: uniqueGenresRes.data.unique_genres,
+      uniqueArtists: uniqueArtistsRes.data.unique_artists,
+      trends: trendsRes.data.trends,
+    };
   } catch (err) {
-    error.value = "Error fetching summary data.";
+    error.value = "Error fetching listening data.";
     console.error(err);
   } finally {
     loading.value = false;
   }
 };
 
-const drawSummaryChart = () => {
-  const svg = d3.select("#summary-chart").attr("viewBox", `0 0 400 400`);
-  svg.selectAll("*").remove();
+// Poll now-playing endpoint every 5 seconds
+const pollNowPlaying = () => {
+  setInterval(async () => {
+    try {
+      const token = localStorage.getItem("spotify_access_token");
+      if (!token) return;
 
-  const data = [
-    { label: "Listening Time", value: listeningTime.value || 0 },
-    { label: "Unique Genres", value: uniqueGenres.value || 0 },
-    { label: "Unique Artists", value: uniqueArtists.value || 0 },
-  ];
-
-  const radius = Math.min(400, 400) / 2;
-  const arc = d3
-    .arc()
-    .innerRadius(radius - 50)
-    .outerRadius(radius);
-  const pie = d3.pie().value((d) => d.value);
-
-  const color = d3.scaleOrdinal(d3.schemeCategory10);
-
-  svg
-    .append("g")
-    .attr("transform", `translate(200,200)`)
-    .selectAll("path")
-    .data(pie(data))
-    .join("path")
-    .attr("d", arc)
-    .attr("fill", (d) => color(d.data.label));
+      const headers = { Authorization: `Bearer ${token}` };
+      const nowPlayingRes = await $axios.get("/now_playing", { headers });
+      nowPlaying.value = nowPlayingRes.data.nowPlaying;
+    } catch (err) {
+      console.error("Error polling now playing:", err);
+    }
+  }, 5000);
 };
 
-onMounted(() => {
-  fetchSummaryData();
-});
+const getGenresText = (genres) => {
+  if (!genres) return "Unveiling the genres you've explored...";
+  if (genres > 50)
+    return `You've explored over ${genres} unique genres. You're musically adventurous!`;
+  if (genres > 20) return `${genres} unique genres—quite diverse!`;
+  return `${genres} genres. You know what you like!`;
+};
+
+const getArtistsText = (artists) => {
+  if (!artists) return "Compiling a list of your favorite artists...";
+  if (artists > 200)
+    return `Incredible! ${artists} artists made it to your playlist last month.`;
+  if (artists > 100) return `${artists} artists—a wide range of favorites!`;
+  return `${artists} artists. You prefer quality over quantity.`;
+};
+
+const startCountdown = () => {
+  countdownActive.value = true;
+  let counter = countdown.value;
+
+  const interval = setInterval(() => {
+    counter--;
+    countdown.value = counter;
+
+    if (counter === 0) {
+      clearInterval(interval);
+      countdownActive.value = false;
+      dataRevealed.value = true;
+      triggerConfetti();
+    }
+  }, 1000);
+};
+
+const triggerConfetti = () => {
+  if (confettiInstance) {
+    confettiInstance({
+      angle: 90,
+      spread: 45,
+      startVelocity: 45,
+      particleCount: 100,
+      origin: { x: 0.5, y: 0.5 },
+    });
+  }
+};
 </script>
 
 <style scoped>
 .chart-container-transparent {
-  flex: 1;
   padding: 20px;
   text-align: center;
+  position: relative;
 }
 
-.last-played {
+.countdown-message {
+  font-size: 3rem;
+  color: blue;
   font-weight: bold;
-  margin-bottom: 20px;
 }
 
-.loading-spinner,
-.error-message {
-  font-weight: bold;
-  margin-top: 10px;
+.reveal-button {
+  background-color: #38a169 !important; /* Green for action (Reveal) */
+  color: white;
+  font-size: 1.2rem;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.reveal-button:hover {
+  background-color: #2f855a !important;
+}
+
+.songs-list,
+.now-playing-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.now-playing-card {
+  justify-content: center; /* Center content vertically */
+  text-align: center;
+  margin: 40px auto; /* Center horizontally */
+  max-width: 400px;
+}
+
+.song-card {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 10px;
+  border-radius: 8px;
+  max-width: 400px;
+}
+
+.artist-image {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
 }
 
 .loading-spinner {
   color: green;
+  font-weight: bold;
+  font-size: 1.5rem;
 }
 
 .error-message {
   color: red;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.confetti-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.5s;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>
