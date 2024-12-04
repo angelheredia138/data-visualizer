@@ -1,4 +1,5 @@
 import * as dotenv from "dotenv";
+import cssInjectedByJsPlugin from "vite-plugin-css-injected-by-js";
 dotenv.config(); // Ensure dotenv loads the environment variables
 
 export default defineNuxtConfig({
@@ -14,6 +15,7 @@ export default defineNuxtConfig({
     transpile: ["vuetify"],
   },
   vite: {
+    plugins: [cssInjectedByJsPlugin()],
     css: {
       preprocessorOptions: {
         scss: {
