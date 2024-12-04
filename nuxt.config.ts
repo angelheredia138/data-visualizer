@@ -13,6 +13,15 @@ export default defineNuxtConfig({
   build: {
     transpile: ["vuetify"],
   },
+  vite: {
+    css: {
+      preprocessorOptions: {
+        scss: {
+          additionalData: '@import "@/assets/styles/variables.scss";', // if needed for SCSS variables
+        },
+      },
+    },
+  },
 
   plugins: [
     "~/plugins/vuetify.ts",
