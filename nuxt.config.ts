@@ -27,7 +27,9 @@ export default defineNuxtConfig({
       noExternal: ["vuetify"], // Ensure Vuetify styles are not processed externally
     },
   },
-
+  nitro: {
+    preset: "static",
+  },
   plugins: [
     "~/plugins/vuetify.ts",
     "~/plugins/axios",
