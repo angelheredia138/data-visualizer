@@ -3,7 +3,9 @@ import axios from "axios";
 
 export default defineNuxtPlugin(() => {
   const instance = axios.create({
-    baseURL: process.env.API_BASE_URL || "http://192.168.0.184:3000/api", // Ensure this is correct
+    baseURL:
+      process.env.API_BASE_URL ||
+      "http://angel-heredia.com/data-visualizer/api", // Ensure this is correct
   });
 
   return {

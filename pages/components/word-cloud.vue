@@ -9,7 +9,6 @@
 <script setup>
 import { ref, watch, onMounted, onBeforeUnmount } from "vue";
 import { useNuxtApp } from "#app";
-import WordCloud from "wordcloud"; // Import wordcloud2.js
 
 // Local state for genres data, loading, and error state
 const genres = ref([]);
