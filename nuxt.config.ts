@@ -52,4 +52,15 @@ export default defineNuxtConfig({
     baseURL: "/data-visualizer/", // baseURL: '/<repository>/'
     buildAssetsDir: "assets", // don't use "_" at the begining of the folder name to avoids nojkill conflict
   },
+  hooks: {
+    ready: () => {
+      console.log("Loaded Environment Variables:", {
+        SPOTIFY_CLIENT_SECRET: process.env.SPOTIFY_CLIENT_SECRET,
+        NUXT_PUBLIC_SPOTIFY_CLIENT_ID:
+          process.env.NUXT_PUBLIC_SPOTIFY_CLIENT_ID,
+        NUXT_PUBLIC_SPOTIFY_REDIRECT_URI:
+          process.env.NUXT_PUBLIC_SPOTIFY_REDIRECT_URI,
+      });
+    },
+  },
 });
