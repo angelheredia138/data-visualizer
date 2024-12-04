@@ -5,7 +5,7 @@ export default defineNuxtPlugin(() => {
   const instance = axios.create({
     baseURL:
       process.env.API_BASE_URL ||
-      "https://angel-heredia.com/data-visualizer/api", // Ensure this is correct
+      "https://data-visualizer-angelheredia138s-projects.vercel.app/api", // Ensure this is correct
   });
 
   return {
