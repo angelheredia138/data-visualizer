@@ -23,6 +23,9 @@ export default defineNuxtConfig({
         },
       },
     },
+    ssr: {
+      noExternal: ["vuetify"], // Ensure Vuetify styles are not processed externally
+    },
   },
 
   plugins: [
