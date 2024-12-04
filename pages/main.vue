@@ -155,7 +155,7 @@ html {
 .grid-item {
   /* Existing styles */
   border: 15px solid transparent;
-  border-image: url("/assets/christmas-lights-border3.png") 900 repeat;
+  border-image: url("@/assets/christmas-lights-border3.png") 900 repeat;
   border-radius: 16px;
   background-color: white !important;
   color: black !important;
