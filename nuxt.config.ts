@@ -28,7 +28,7 @@ export default defineNuxtConfig({
     },
   },
   nitro: {
-    preset: "static",
+    preset: "vercel",
   },
   plugins: [
     "~/plugins/vuetify.ts",
@@ -49,8 +49,8 @@ export default defineNuxtConfig({
 
   compatibilityDate: "2024-12-02",
   app: {
-    baseURL: "/data-visualizer/", // baseURL: '/<repository>/'
-    buildAssetsDir: "assets", // don't use "_" at the begining of the folder name to avoids nojkill conflict
+    baseURL: "/", // baseURL: '/<repository>/'
+    buildAssetsDir: "/_nuxt/", // don't use "_" at the begining of the folder name to avoids nojkill conflict
   },
   hooks: {
     ready: () => {
