@@ -26,12 +26,6 @@
       <div class="explanation-section" style="max-width: 800px">
         <h2 class="subtitle">Chart Explanations</h2>
         <p class="explanation-text">
-          <strong>Genre Word Cloud:</strong> Visualizes the genres you have
-          listened to in a word cloud format. The size of each genre name is
-          proportional to the number of listens. Hover or tap on a genre name to
-          see its full name if it is truncated.
-        </p>
-        <p class="explanation-text">
           <strong>Genre Distribution Pie Chart:</strong> Displays the
           distribution of your favorite genres in a pie chart format. Hover or
           tap on each slice to see more details. Genres with only one artist
@@ -48,16 +42,6 @@
           <div class="graph-content">
             <client-only>
               <PieChart />
-            </client-only>
-          </div>
-        </div>
-
-        <!-- Genre Word Cloud -->
-        <div class="graph-item">
-          <h3 class="graph-title">Genre Word Cloud</h3>
-          <div class="graph-content">
-            <client-only>
-              <WordCloud />
             </client-only>
           </div>
         </div>
