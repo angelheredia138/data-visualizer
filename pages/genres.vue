@@ -16,7 +16,7 @@
     <div v-if="!showLoadingOverlay">
       <!-- Fixed Title and Back Button -->
       <div class="header-container">
-        <h1 class="page-title">Genre Pie Chart and Word Cloud!</h1>
+        <h1 class="page-title">Genre Pie Chart!</h1>
         <v-btn color="primary" class="back-button" @click="goBack">
           Back to Home
         </v-btn>
