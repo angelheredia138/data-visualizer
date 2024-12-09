@@ -23,6 +23,40 @@
         Log in with Spotify
       </v-btn>
     </v-card>
+    <!-- Video and Caption Section -->
+    <v-card
+      class="mx-auto text-center"
+      max-width="600"
+      elevation="0"
+      style="margin-top: 40px"
+    >
+      <v-card-text
+        style="
+          font-weight: bold;
+          color: red;
+          font-size: 1em;
+          margin-bottom: 16px;
+          align-items: center;
+          text-align: center;
+        "
+      >
+        If you have not been specifically added to this app's users, you will
+        not be able to access it. If you would like to,
+        <a href="mailto:herediafangel@gmail.com" style="color: red">email me</a>
+        and I will give you permissions for 48 hours to be able to access and
+        view your statistics. In the meantime, if you would like to view a demo
+        of this page, please see the video below.
+      </v-card-text>
+      <v-card-text>
+        <iframe
+          width="100%"
+          height="315"
+          src="https://drive.google.com/file/d/1dAy7ze4M7QB8N6-KQNn-u1Tg7LLtmpfw/preview"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowfullscreen
+        ></iframe>
+      </v-card-text>
+    </v-card>
   </v-container>
 </template>
 
